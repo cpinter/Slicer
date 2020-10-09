@@ -48,8 +48,9 @@ public:
   /// Copy one type into another (deep copy)
   virtual void Copy(vtkMRMLMeasurement* aEntry);
 
-  /// Perform calculation on \sa InputMRMLNode and store the result internally
-  virtual void Compute() {};
+  /// Perform calculation on \sa InputMRMLNode and store the result internally.
+  /// The subclasses need to implement this function
+  virtual void Compute();
 
   /// Enabled
   vtkSetMacro(Enabled, bool);

@@ -47,6 +47,14 @@ public:
   //@}
 
   //@{
+  /// This indicates whether the curve should loop back in on itself,
+  /// connecting the last point back to the first point (disabled by default).
+  vtkSetMacro(CurveIsLoop, bool);
+  vtkGetMacro(CurveIsLoop, bool);
+  vtkBooleanMacro(CurveIsLoop, bool);
+  //@}
+
+  //@{
   /// Set/Get flag determining whether to calculate curvature
   vtkSetMacro(CalculateCurvature, bool);
   vtkGetMacro(CalculateCurvature, bool);
@@ -70,6 +78,7 @@ protected:
 
 protected:
   vtkWeakPointer<vtkCollection> Measurements;
+  bool CurveIsLoop{false};
   bool CalculateCurvature{false};
   bool InterpolateControlPointMeasurement{false};
 

@@ -337,3 +337,9 @@ vtkMRMLNode* vtkMRMLMeasurement::GetInputMRMLNode()
 
   return nullptr;
 }
+
+//----------------------------------------------------------------------------
+void vtkMRMLMeasurement::Compute()
+{
+  vtkWarningMacro("Compute function not implemented! vtkMRMLMeasurement subclasses need to be used that implement it");
+}

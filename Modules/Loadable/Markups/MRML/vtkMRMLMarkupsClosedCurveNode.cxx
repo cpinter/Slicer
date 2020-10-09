@@ -19,6 +19,7 @@
 
 // MRML includes
 #include "vtkCurveGenerator.h"
+#include "vtkCurveMeasurementsCalculator.h"
 
 // VTK includes
 #include <vtkNew.h>
@@ -32,6 +33,7 @@ vtkMRMLMarkupsClosedCurveNode::vtkMRMLMarkupsClosedCurveNode()
 {
   this->CurveClosed = true;
   this->CurveGenerator->SetCurveIsLoop(true);
+  this->CurveMeasurementsCalculator->SetCurveIsLoop(true);
 }
 
 //----------------------------------------------------------------------------

@@ -167,7 +167,6 @@ bool vtkCurveMeasurementsCalculator::CalculatePolyDataCurvature(vtkPolyData* pol
     }
   if (polyData->GetNumberOfPoints() == 0 || polyData->GetNumberOfLines() == 0)
     {
-    // vtkErrorMacro("CalculatePolyDataCurvature: No points or lines in input poly data");
     return false;
     }
 
@@ -179,7 +178,8 @@ bool vtkCurveMeasurementsCalculator::CalculatePolyDataCurvature(vtkPolyData* pol
   vtkNew<vtkIdList> linePoints;
 
   lines->GetCell(0, linePoints);
-  vtkIdType numberOfPoints = linePoints->GetNumberOfIds();
+  vtkIdType numberOfPoints = // Last point in closed curve line is the first point
+    (this->CurveIsLoop ? linePoints->GetNumberOfIds()-1 : linePoints->GetNumberOfIds());
 
   // Initialize curvature array
   vtkNew<vtkDoubleArray> curvatureValues;
@@ -208,11 +208,19 @@ bool vtkCurveMeasurementsCalculator::CalculatePolyDataCurvature(vtkPolyData* pol
   double currentLength = 0.0;
   double length = 0.0;
 
-  curvatureValues->InsertValue(linePoints->GetId(0), 0.0); // The curvature for the first cell is 0.0
+  // The curvature for the first cell is 0.0 for open curves
+  curvatureValues->InsertValue(linePoints->GetId(0), 0.0);
 
   prevPoint[0] = currPoint[0]; prevPoint[1] = currPoint[1]; prevPoint[2] = currPoint[2];
-  for (vtkIdType idx=1; idx<numberOfPoints-1; ++idx)
+  for (vtkIdType idx=1; idx<numberOfPoints; ++idx)
     {
+    if (!this->CurveIsLoop && idx == numberOfPoints-1)
+      {
+      // Only calculate first point curvature for closed curves i.e. loops,
+      // for which the last point is the first point
+      break;
+      }
+
     currPoint = points->GetPoint(linePoints->GetId(idx+1));
 
     diffVector[0] = currPoint[0]-prevPoint[0];
@@ -259,8 +267,19 @@ bool vtkCurveMeasurementsCalculator::CalculatePolyDataCurvature(vtkPolyData* pol
       }
     } // For each line point
 
-  // Final point
-  curvatureValues->InsertValue(linePoints->GetId(numberOfPoints-1), 0.0); // The curvature for the last cell is 0.0
+  if (!this->CurveIsLoop)
+    {
+    // The curvature for the last cell by definition is 0.0 for open curves
+    curvatureValues->InsertValue(linePoints->GetId(numberOfPoints-1), 0.0);
+    }
+  else
+    {
+    // Use the adjacent values for closed curve instead of the singular values
+    curvatureValues->SetComponent(linePoints->GetId(0), 0,
+      curvatureValues->GetValue(linePoints->GetId(1)));
+    curvatureValues->SetComponent(linePoints->GetId(numberOfPoints-1), 0,
+      curvatureValues->GetValue(linePoints->GetId(numberOfPoints-2)));
+    }
 
   currentLength = sqrt( (prevPoint[0]-prevMeanPoint[0])*(prevPoint[0]-prevMeanPoint[0])
                       + (prevPoint[1]-prevMeanPoint[1])*(prevPoint[1]-prevMeanPoint[1])
