@@ -47,7 +47,7 @@ public:
   //@}
 
   //@{
-  /// This indicates whether the curve should loop back in on itself,
+  /// This indicates whether the curve loops back in on itself,
   /// connecting the last point back to the first point (disabled by default).
   vtkSetMacro(CurveIsLoop, bool);
   vtkGetMacro(CurveIsLoop, bool);
@@ -77,14 +77,24 @@ protected:
   static void OnControlPointArrayModified(vtkObject* caller, unsigned long eid, void* clientData, void* callData);
 
 protected:
+  /// Measurement list from the markups node for derived measurements (such as interpolation)
   vtkWeakPointer<vtkCollection> Measurements;
+
+  /// Flag indicating whether the current curve is closed
   bool CurveIsLoop{false};
+
+  /// Flag determining whether the filter should calculate curvature
   bool CalculateCurvature{false};
+
+  /// Flag determining whether the filter should interpolate control point measurements
   bool InterpolateControlPointMeasurement{false};
 
   /// Command handling data array modified events
   vtkCallbackCommand* ControlPointArrayModifiedCallbackCommand;
+  /// List of observed control point arrays (for removal of observations)
+  vtkCollection* ObservedControlPointArrays;
 
+protected:
   int FillInputPortInformation(int port, vtkInformation* info) override;
   int RequestData(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector) override;
 

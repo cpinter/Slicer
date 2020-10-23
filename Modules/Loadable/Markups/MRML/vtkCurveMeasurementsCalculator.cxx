@@ -46,6 +46,8 @@ vtkCurveMeasurementsCalculator::vtkCurveMeasurementsCalculator()
   this->ControlPointArrayModifiedCallbackCommand->SetClientData( reinterpret_cast<void *>(this) );
   this->ControlPointArrayModifiedCallbackCommand->SetCallback( vtkCurveMeasurementsCalculator::OnControlPointArrayModified );
 
+  this->ObservedControlPointArrays = vtkCollection::New();
+
   // timestamps for input and output are the same, initially
   this->Modified();
 }
@@ -53,11 +55,27 @@ vtkCurveMeasurementsCalculator::vtkCurveMeasurementsCalculator()
 //------------------------------------------------------------------------------
 vtkCurveMeasurementsCalculator::~vtkCurveMeasurementsCalculator()
 {
+  // Remove observations before deleting control point array callback and observed arrays collection
+  for (int idx=0; idx<this->ObservedControlPointArrays->GetNumberOfItems(); ++idx)
+    {
+    vtkDoubleArray* observedArray = vtkDoubleArray::SafeDownCast(this->ObservedControlPointArrays->GetItemAsObject(idx));
+    if (observedArray)
+      {
+      observedArray->RemoveObserver(this->ControlPointArrayModifiedCallbackCommand);
+      }
+    }
+
   if (this->ControlPointArrayModifiedCallbackCommand)
     {
     this->ControlPointArrayModifiedCallbackCommand->SetClientData(nullptr);
     this->ControlPointArrayModifiedCallbackCommand->Delete();
     this->ControlPointArrayModifiedCallbackCommand = nullptr;
+    }
+
+  if (this->ObservedControlPointArrays)
+    {
+    this->ObservedControlPointArrays->Delete();
+    this->ObservedControlPointArrays = nullptr;
     }
 }
 
@@ -66,6 +84,7 @@ void vtkCurveMeasurementsCalculator::PrintSelf(std::ostream &os, vtkIndent inden
 {
   Superclass::PrintSelf(os, indent);
   os << indent << "CalculateCurvature: " << this->CalculateCurvature << std::endl;
+  os << indent << "InterpolateControlPointMeasurement: " << this->InterpolateControlPointMeasurement << std::endl;
 }
 
 //----------------------------------------------------------------------------------
@@ -116,12 +135,6 @@ int vtkCurveMeasurementsCalculator::RequestData(
     return 1;
     }
 
-  // vtkPoints* inputPoints = inputPolyData->GetPoints();
-  // if (!inputPoints)
-    // {
-    // return 1;
-    // }
-
   vtkInformation* outInfo = outputVector->GetInformationObject(0);
   vtkPolyData* outputPolyData = vtkPolyData::SafeDownCast(
     outInfo->Get(vtkDataObject::DATA_OBJECT()));
@@ -148,10 +161,6 @@ int vtkCurveMeasurementsCalculator::RequestData(
   if (this->InterpolateControlPointMeasurement)
     {
     this->InterpolateControlPointMeasurementToPolyData(outputPolyData);
-    }
-  else
-    {
-    //TODO: Remove arrays?
     }
 
   outputPolyData->Squeeze();
@@ -309,7 +318,7 @@ bool vtkCurveMeasurementsCalculator::InterpolateControlPointMeasurementToPolyDat
     {
     return false;
     }
-  vtkDoubleArray* pedigreeIdsArray = vtkDoubleArray::SafeDownCast(outputPolyData->GetPointData()->GetArray("PedigreeIDs"));
+  vtkDoubleArray* pedigreeIdsArray = vtkDoubleArray::SafeDownCast(outputPolyData->GetPointData()->GetAbstractArray("PedigreeIDs"));
   if (!pedigreeIdsArray)
     {
     vtkErrorMacro("InterpolateControlPointMeasurementToPolyData: Missing PedigreeIDs array in the curve poly data");
@@ -345,9 +354,9 @@ bool vtkCurveMeasurementsCalculator::InterpolateControlPointMeasurementToPolyDat
       }
 
     // Observe control point data array. If it is modified, then interpolation needs to be re-run
-    vtkEventBroker::GetInstance()->AddObservation(
-      controlPointValues, vtkCommand::ModifiedEvent, this, this->ControlPointArrayModifiedCallbackCommand);
-    controlPointValues->Register(this);
+    controlPointValues->AddObserver(vtkCommand::ModifiedEvent, this->ControlPointArrayModifiedCallbackCommand);
+    vtkWeakPointer<vtkDoubleArray> controlPointArrayWeakPointer(controlPointValues);
+    this->ObservedControlPointArrays->AddItem(controlPointArrayWeakPointer);
 
     vtkNew<vtkDoubleArray> interpolatedMeasurement;
     std::string arrayName = std::string("Interpolated:") + (currentMeasurement->GetName() ? std::string(currentMeasurement->GetName()) : "Unknown");
