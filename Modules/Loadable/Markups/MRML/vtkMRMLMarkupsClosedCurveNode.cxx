@@ -32,8 +32,8 @@ vtkMRMLNodeNewMacro(vtkMRMLMarkupsClosedCurveNode);
 vtkMRMLMarkupsClosedCurveNode::vtkMRMLMarkupsClosedCurveNode()
 {
   this->CurveClosed = true;
-  this->CurveGenerator->SetCurveIsLoop(true);
-  this->CurveMeasurementsCalculator->SetCurveIsLoop(true);
+  this->CurveGenerator->SetCurveIsClosed(true);
+  this->CurveMeasurementsCalculator->SetCurveIsClosed(true);
 }
 
 //----------------------------------------------------------------------------

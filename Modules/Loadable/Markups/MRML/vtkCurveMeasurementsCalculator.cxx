@@ -188,7 +188,7 @@ bool vtkCurveMeasurementsCalculator::CalculatePolyDataCurvature(vtkPolyData* pol
 
   lines->GetCell(0, linePoints);
   vtkIdType numberOfPoints = // Last point in closed curve line is the first point
-    (this->CurveIsLoop ? linePoints->GetNumberOfIds()-1 : linePoints->GetNumberOfIds());
+    (this->CurveIsClosed ? linePoints->GetNumberOfIds()-1 : linePoints->GetNumberOfIds());
 
   // Initialize curvature array
   vtkNew<vtkDoubleArray> curvatureValues;
@@ -223,7 +223,7 @@ bool vtkCurveMeasurementsCalculator::CalculatePolyDataCurvature(vtkPolyData* pol
   prevPoint[0] = currPoint[0]; prevPoint[1] = currPoint[1]; prevPoint[2] = currPoint[2];
   for (vtkIdType idx=1; idx<numberOfPoints; ++idx)
     {
-    if (!this->CurveIsLoop && idx == numberOfPoints-1)
+    if (!this->CurveIsClosed && idx == numberOfPoints-1)
       {
       // Only calculate first point curvature for closed curves i.e. loops,
       // for which the last point is the first point
@@ -276,7 +276,7 @@ bool vtkCurveMeasurementsCalculator::CalculatePolyDataCurvature(vtkPolyData* pol
       }
     } // For each line point
 
-  if (!this->CurveIsLoop)
+  if (!this->CurveIsClosed)
     {
     // The curvature for the last cell by definition is 0.0 for open curves
     curvatureValues->InsertValue(linePoints->GetId(numberOfPoints-1), 0.0);

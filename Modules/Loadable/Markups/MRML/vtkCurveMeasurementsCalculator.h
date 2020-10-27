@@ -49,9 +49,9 @@ public:
   //@{
   /// This indicates whether the curve loops back in on itself,
   /// connecting the last point back to the first point (disabled by default).
-  vtkSetMacro(CurveIsLoop, bool);
-  vtkGetMacro(CurveIsLoop, bool);
-  vtkBooleanMacro(CurveIsLoop, bool);
+  vtkSetMacro(CurveIsClosed, bool);
+  vtkGetMacro(CurveIsClosed, bool);
+  vtkBooleanMacro(CurveIsClosed, bool);
   //@}
 
   //@{
@@ -81,7 +81,7 @@ protected:
   vtkWeakPointer<vtkCollection> Measurements;
 
   /// Flag indicating whether the current curve is closed
-  bool CurveIsLoop{false};
+  bool CurveIsClosed{false};
 
   /// Flag determining whether the filter should calculate curvature
   bool CalculateCurvature{false};
