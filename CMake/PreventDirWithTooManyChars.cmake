@@ -15,7 +15,7 @@ function(AssureLengthForSourceOrBuildDir max_length)
 
   function(_check_path_length path description)
     string(LENGTH "${path}" n)
-    if(n GREATER ${max_length})
+    if(n GREATER 128)
       string(SUBSTRING "${path}" 0 ${max_length} _expected_path)
       message(
         FATAL_ERROR
