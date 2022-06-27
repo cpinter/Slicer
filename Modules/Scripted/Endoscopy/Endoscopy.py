@@ -404,7 +404,7 @@ class EndoscopyComputePath:
         self.p[i] = coord
     else:
       # slicer3 style fiducial lists
-      self.n = self.fids.GetNumberOfFiducials()
+      self.n = self.fids.GetNumberOfControlPoints()
       n = self.n
       if n == 0:
         return
