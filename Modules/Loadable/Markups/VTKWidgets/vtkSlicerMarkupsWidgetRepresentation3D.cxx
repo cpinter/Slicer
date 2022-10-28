@@ -888,9 +888,10 @@ int vtkSlicerMarkupsWidgetRepresentation3D::RenderOverlay(vtkViewport *viewport)
 
     if (!this->TextActorOccluded)
       {
-      count +=  this->TextActor->RenderOverlay(viewport);
+      count += this->TextActor->RenderOverlay(viewport);
       }
     }
+
   return count;
 }
 
