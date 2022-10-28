@@ -141,7 +141,6 @@ vtkSlicerMarkupsWidgetRepresentation::vtkSlicerMarkupsWidgetRepresentation()
   this->NeedToRender = false;
   this->CurveClosed = 0;
 
-  this->TextActor = vtkSmartPointer<vtkTextActor>::New();
   // hide by default, if a concrete class implements properties display, it will enable it
   this->TextActor->SetVisibility(false);
 
@@ -566,7 +565,6 @@ void vtkSlicerMarkupsWidgetRepresentation::UpdateFromMRML(
     this->TextActor->SetInput("");
     }
 
-
   this->NeedToRenderOn(); // TODO: to improve performance, call this only if it is actually needed
 
   if (this->InteractionPipeline)
@@ -588,6 +586,7 @@ void vtkSlicerMarkupsWidgetRepresentation::UpdateInteractionPipeline()
   if (!this->MarkupsDisplayNode)
     {
     this->InteractionPipeline->Actor->SetVisibility(false);
+    this->InteractionPipeline->AxisLabelActor->SetVisibility(false);
     return;
     }
 
@@ -817,6 +816,7 @@ void vtkSlicerMarkupsWidgetRepresentation::GetActors(vtkPropCollection* pc)
   if (this->InteractionPipeline)
     {
     this->InteractionPipeline->Actor->GetActors(pc);
+    this->InteractionPipeline->AxisLabelActor->GetActors(pc);
     }
 }
 
@@ -826,6 +826,7 @@ void vtkSlicerMarkupsWidgetRepresentation::ReleaseGraphicsResources(vtkWindow* w
   if (this->InteractionPipeline)
     {
     this->InteractionPipeline->Actor->ReleaseGraphicsResources(window);
+    this->InteractionPipeline->AxisLabelActor->ReleaseGraphicsResources(window);
     }
 }
 
@@ -836,6 +837,7 @@ int vtkSlicerMarkupsWidgetRepresentation::RenderOverlay(vtkViewport* viewport)
   if (this->InteractionPipeline && this->InteractionPipeline->Actor->GetVisibility())
     {
     count += this->InteractionPipeline->Actor->RenderOverlay(viewport);
+    count += this->InteractionPipeline->AxisLabelActor->RenderOverlay(viewport);
     }
   return count;
 }
@@ -853,6 +855,7 @@ int vtkSlicerMarkupsWidgetRepresentation::RenderOpaqueGeometry(vtkViewport* view
       this->InteractionPipeline->SetWidgetScale(this->InteractionPipeline->InteractionHandleSize);
       }
     count += this->InteractionPipeline->Actor->RenderOpaqueGeometry(viewport);
+    count += this->InteractionPipeline->AxisLabelActor->RenderOpaqueGeometry(viewport);
     }
   return count;
 }
@@ -865,6 +868,7 @@ int vtkSlicerMarkupsWidgetRepresentation::RenderTranslucentPolygonalGeometry(vtk
     {
     this->InteractionPipeline->Actor->SetPropertyKeys(this->GetPropertyKeys());
     count += this->InteractionPipeline->Actor->RenderTranslucentPolygonalGeometry(viewport);
+    count += this->InteractionPipeline->AxisLabelActor->RenderTranslucentPolygonalGeometry(viewport);
     }
   return count;
 }
@@ -1144,6 +1148,20 @@ void vtkSlicerMarkupsWidgetRepresentation::MarkupsInteractionPipeline::CreateTra
   visibilityArray->Fill(1);
   this->TranslationHandlePoints->GetPointData()->AddArray(visibilityArray);
 
+  // Note: cannot be created here and later accessed by GetArray because vtkStringArray is not a subclass
+  //       vtkDataArray and is casted to nullptr in vtkFieldData::GetArray
+  this->AxisLabelArray->SetName("label");
+  this->AxisLabelArray->SetNumberOfComponents(1);
+  this->AxisLabelArray->SetNumberOfValues(this->TranslationHandlePoints->GetNumberOfPoints());
+  this->TranslationHandlePoints->GetPointData()->AddArray(this->AxisLabelArray);
+
+  this->AxisLabelTransform->SetInputConnection(this->TranslationScaleTransform->GetOutputPort());
+  this->AxisLabelTransform->SetTransform(this->HandleToWorldTransform);
+  this->AxisLabelMapper->SetInputConnection(this->AxisLabelTransform->GetOutputPort());
+  this->AxisLabelMapper->SetLabelModeToLabelFieldData();
+  this->AxisLabelMapper->SetFieldDataName("label");
+  this->AxisLabelActor->SetMapper(AxisLabelMapper);
+
   this->Append->AddInputConnection(this->AxisTranslationGlypher->GetOutputPort());
 }
 
@@ -1217,6 +1235,15 @@ void vtkSlicerMarkupsWidgetRepresentation::MarkupsInteractionPipeline::UpdateHan
     translationVisibilityArray->SetValue(1, translationVisibility[1]);
     translationVisibilityArray->SetValue(2, translationVisibility[2]);
     translationVisibilityArray->SetValue(3, translationVisibility[3]);
+
+    std::string axisLabels[3];
+    displayNode->GetMarkupsNode()->GetAxisLabels(axisLabels[0], axisLabels[1], axisLabels[2]);
+    bool labelActorVisible = true;
+    for (int i = 0; i < 3; ++i)
+      {
+      this->AxisLabelArray->SetValue(i, (translationVisibility[i] ? axisLabels[i].c_str() : ""));
+      }
+    this->AxisLabelActor->SetVisibility(!axisLabels[0].empty() || !axisLabels[1].empty() || !axisLabels[2].empty());
     }
 }
 
