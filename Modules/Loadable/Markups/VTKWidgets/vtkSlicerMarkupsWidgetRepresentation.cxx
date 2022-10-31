@@ -1254,6 +1254,14 @@ void vtkSlicerMarkupsWidgetRepresentation::MarkupsInteractionPipeline::UpdateHan
     {
     return;
     }
+  vtkSlicerMarkupsWidgetRepresentation* markupsRepresentation = vtkSlicerMarkupsWidgetRepresentation::SafeDownCast(this->Representation);
+  vtkMRMLMarkupsDisplayNode* displayNode = nullptr;
+  std::string axisLabels[3];
+  if (markupsRepresentation)
+    {
+    displayNode = markupsRepresentation->GetMarkupsDisplayNode();
+    displayNode->GetMarkupsNode()->GetAxisLabels(axisLabels[0], axisLabels[1], axisLabels[2]);
+    }
 
   int numberOfHandles = this->RotationHandlePoints->GetNumberOfPoints()
     + this->TranslationHandlePoints->GetNumberOfPoints()
@@ -1298,11 +1306,23 @@ void vtkSlicerMarkupsWidgetRepresentation::MarkupsInteractionPipeline::UpdateHan
     }
   translationColorArray->Initialize();
   translationColorArray->SetNumberOfTuples(this->TranslationHandlePoints->GetNumberOfPoints());
+
   for (int i = 0; i < this->TranslationHandlePoints->GetNumberOfPoints(); ++i)
     {
     this->GetHandleColor(vtkMRMLMarkupsDisplayNode::ComponentTranslationHandle, i, color);
     this->ColorTable->SetTableValue(colorIndex, color);
     translationColorArray->SetTuple1(i, colorIndex);
+    if (displayNode && i < 3)
+      {
+      if (color[3] == 0.0)
+        {
+        this->AxisLabelArray->SetValue(i, "");
+        }
+      else
+        {
+        this->AxisLabelArray->SetValue(i, axisLabels[i]);
+        }
+      }
     ++colorIndex;
     }
 
