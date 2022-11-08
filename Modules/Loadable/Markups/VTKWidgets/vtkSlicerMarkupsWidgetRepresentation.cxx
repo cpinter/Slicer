@@ -1148,8 +1148,18 @@ void vtkSlicerMarkupsWidgetRepresentation::MarkupsInteractionPipeline::CreateTra
   visibilityArray->Fill(1);
   this->TranslationHandlePoints->GetPointData()->AddArray(visibilityArray);
 
-  // Note: cannot be created here and later accessed by GetArray because vtkStringArray is not a subclass
-  //       vtkDataArray and is casted to nullptr in vtkFieldData::GetArray
+  //vtkNew<vtkIdTypeArray> typeArray;
+  vtkNew<vtkIntArray> typeArray;
+  typeArray->SetName("type");
+  typeArray->SetNumberOfComponents(1);
+  typeArray->InsertNextTuple1(0);
+  typeArray->InsertNextTuple1(1);
+  typeArray->InsertNextTuple1(2);
+  typeArray->InsertNextTuple1(3);
+  this->TranslationHandlePoints->GetPointData()->AddArray(typeArray);
+
+  // Note: The array cannot be instantiated here and later accessed by GetArray because vtkStringArray
+  //       is not a subclass vtkDataArray and is casted to nullptr in vtkFieldData::GetArray
   this->AxisLabelArray->SetName("label");
   this->AxisLabelArray->SetNumberOfComponents(1);
   this->AxisLabelArray->SetNumberOfValues(this->TranslationHandlePoints->GetNumberOfPoints());
@@ -1312,7 +1322,7 @@ void vtkSlicerMarkupsWidgetRepresentation::MarkupsInteractionPipeline::UpdateHan
     this->GetHandleColor(vtkMRMLMarkupsDisplayNode::ComponentTranslationHandle, i, color);
     this->ColorTable->SetTableValue(colorIndex, color);
     translationColorArray->SetTuple1(i, colorIndex);
-    if (displayNode && i < 3)
+    if (i < 3)
       {
       if (color[3] == 0.0)
         {
@@ -1323,6 +1333,14 @@ void vtkSlicerMarkupsWidgetRepresentation::MarkupsInteractionPipeline::UpdateHan
         this->AxisLabelArray->SetValue(i, axisLabels[i]);
         }
       }
+    vtkSmartPointer<vtkTextProperty> textProperty = vtkSmartPointer<vtkTextProperty>::New();
+    textProperty->SetFontSize(16);
+    textProperty->SetBold(1);
+    //textProperty->SetItalic(1);
+    textProperty->SetShadow(2);
+    textProperty->SetFontFamilyToArial();
+    textProperty->SetColor(color);
+    this->AxisLabelMapper->SetLabelTextProperty(textProperty, i);
     ++colorIndex;
     }
 
