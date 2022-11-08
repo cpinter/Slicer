@@ -1148,8 +1148,7 @@ void vtkSlicerMarkupsWidgetRepresentation::MarkupsInteractionPipeline::CreateTra
   visibilityArray->Fill(1);
   this->TranslationHandlePoints->GetPointData()->AddArray(visibilityArray);
 
-  //vtkNew<vtkIdTypeArray> typeArray;
-  vtkNew<vtkIntArray> typeArray;
+  vtkNew<vtkIntArray> typeArray; // Need for coloring the axis labels same as the handles
   typeArray->SetName("type");
   typeArray->SetNumberOfComponents(1);
   typeArray->InsertNextTuple1(0);
@@ -1165,7 +1164,13 @@ void vtkSlicerMarkupsWidgetRepresentation::MarkupsInteractionPipeline::CreateTra
   this->AxisLabelArray->SetNumberOfValues(this->TranslationHandlePoints->GetNumberOfPoints());
   this->TranslationHandlePoints->GetPointData()->AddArray(this->AxisLabelArray);
 
-  this->AxisLabelTransform->SetInputConnection(this->TranslationScaleTransform->GetOutputPort());
+  vtkNew<vtkTransformPolyDataFilter> axisLabelTransformFilter;
+  axisLabelTransformFilter->SetInputConnection(this->TranslationScaleTransform->GetOutputPort());
+  vtkNew<vtkTransform> axisLabelTransform;
+  axisLabelTransform->Scale(1.15, 1.12, 1.10);
+  axisLabelTransformFilter->SetTransform(axisLabelTransform);
+
+  this->AxisLabelTransform->SetInputConnection(axisLabelTransformFilter->GetOutputPort());
   this->AxisLabelTransform->SetTransform(this->HandleToWorldTransform);
   this->AxisLabelMapper->SetInputConnection(this->AxisLabelTransform->GetOutputPort());
   this->AxisLabelMapper->SetLabelModeToLabelFieldData();
@@ -1334,9 +1339,8 @@ void vtkSlicerMarkupsWidgetRepresentation::MarkupsInteractionPipeline::UpdateHan
         }
       }
     vtkSmartPointer<vtkTextProperty> textProperty = vtkSmartPointer<vtkTextProperty>::New();
-    textProperty->SetFontSize(16);
+    textProperty->SetFontSize(28);
     textProperty->SetBold(1);
-    //textProperty->SetItalic(1);
     textProperty->SetShadow(2);
     textProperty->SetFontFamilyToArial();
     textProperty->SetColor(color);
