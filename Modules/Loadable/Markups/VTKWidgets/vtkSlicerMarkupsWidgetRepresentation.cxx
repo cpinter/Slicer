@@ -1018,7 +1018,8 @@ void vtkSlicerMarkupsWidgetRepresentation::MarkupsInteractionPipeline::CreateRot
   this->AxisRotationGlyphSource = vtkSmartPointer <vtkAppendPolyData>::New();
   this->AxisRotationGlyphSource->AddInputConnection(this->AxisRotationHandleSource->GetOutputPort());
   this->AxisRotationGlyphSource->AddInputConnection(this->AxisRotationTubeFilter->GetOutputPort());
-  this->AxisRotationGlyphSource->AddInputConnection(this->AxisRotationInterorAngleTubeFilter->GetOutputPort());
+  // Disable the inner lines of the rotation handle (shown by default because it looks strange without translation)
+  //this->AxisRotationGlyphSource->AddInputConnection(this->AxisRotationInterorAngleTubeFilter->GetOutputPort());
   this->AxisRotationGlypher = vtkSmartPointer<vtkTensorGlyph>::New();
   this->AxisRotationGlypher->SetInputConnection(this->RotationScaleTransform->GetOutputPort());
   this->AxisRotationGlypher->SetSourceConnection(this->AxisRotationGlyphSource->GetOutputPort());
