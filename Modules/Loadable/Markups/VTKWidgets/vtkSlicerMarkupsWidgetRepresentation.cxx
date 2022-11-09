@@ -1340,7 +1340,7 @@ void vtkSlicerMarkupsWidgetRepresentation::MarkupsInteractionPipeline::UpdateHan
         }
       }
     vtkSmartPointer<vtkTextProperty> textProperty = vtkSmartPointer<vtkTextProperty>::New();
-    textProperty->SetFontSize(28);
+    textProperty->SetFontSize(static_cast<int>(displayNode->GetTextProperty()->GetFontSize() * displayNode->GetTextScale()));
     textProperty->SetBold(1);
     textProperty->SetShadow(2);
     textProperty->SetFontFamilyToArial();
