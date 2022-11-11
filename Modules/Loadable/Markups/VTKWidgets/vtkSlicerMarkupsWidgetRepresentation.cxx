@@ -591,6 +591,7 @@ void vtkSlicerMarkupsWidgetRepresentation::UpdateInteractionPipeline()
     }
 
   this->InteractionPipeline->Actor->SetVisibility(this->MarkupsDisplayNode->GetHandlesInteractive());
+  this->InteractionPipeline->AxisLabelActor->SetVisibility(this->MarkupsDisplayNode->GetHandlesInteractive());
   this->InteractionPipeline->UpdateHandleVisibility();
 
   vtkNew<vtkTransform> handleToWorldTransform;
@@ -1254,7 +1255,6 @@ void vtkSlicerMarkupsWidgetRepresentation::MarkupsInteractionPipeline::UpdateHan
 
     std::string axisLabels[3];
     displayNode->GetMarkupsNode()->GetAxisLabels(axisLabels[0], axisLabels[1], axisLabels[2]);
-    bool labelActorVisible = true;
     for (int i = 0; i < 3; ++i)
       {
       this->AxisLabelArray->SetValue(i, (translationVisibility[i] ? axisLabels[i].c_str() : ""));
@@ -1340,7 +1340,10 @@ void vtkSlicerMarkupsWidgetRepresentation::MarkupsInteractionPipeline::UpdateHan
         }
       }
     vtkSmartPointer<vtkTextProperty> textProperty = vtkSmartPointer<vtkTextProperty>::New();
-    textProperty->SetFontSize(static_cast<int>(displayNode->GetTextProperty()->GetFontSize() * displayNode->GetTextScale()));
+    if (displayNode)
+      {
+      textProperty->SetFontSize(static_cast<int>(displayNode->GetTextProperty()->GetFontSize() * displayNode->GetTextScale()));
+      }
     textProperty->SetBold(1);
     textProperty->SetShadow(2);
     textProperty->SetFontFamilyToArial();
