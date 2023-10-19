@@ -1,19 +1,23 @@
-/*=========================================================================
+/*==========================================================================
 
-  Copyright Brigham and Women's Hospital (BWH) All Rights Reserved.
+  Copyright (c) Ebatinca S.L., Las Palmas de Gran Canaria, Spain
 
   See COPYRIGHT.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
 
-  Program:   vtkITK
-  Module:    $HeadURL$
-  Date:      $Date$
-  Version:   $Revision$
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+
+  This file was originally developed by Csaba Pinter, Ebatinca, funded
+  by the grant GRT-00000485 of Children's Hospital of Philadelphia, USA.
 
 ==========================================================================*/
 
-#ifndef __vtkITKImageWriter_h
-#define __vtkITKImageWriter_h
+#ifndef __vtkITKImageSequenceWriter_h
+#define __vtkITKImageSequenceWriter_h
 
 #include "vtkImageAlgorithm.h"
 #include "vtkImageData.h"
@@ -25,32 +29,30 @@
 
 class vtkStringArray;
 
-class VTK_ITK_EXPORT vtkITKImageWriter : public vtkImageAlgorithm
+class VTK_ITK_EXPORT vtkITKImageSequenceWriter : public vtkImageAlgorithm
 {
 public:
-  static vtkITKImageWriter *New();
-  vtkTypeMacro(vtkITKImageWriter,vtkImageAlgorithm);
+  static vtkITKImageSequenceWriter *New();
+  vtkTypeMacro(vtkITKImageSequenceWriter, vtkImageAlgorithm);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
   enum
-  {
+    {
     VoxelVectorTypeUndefined,
     VoxelVectorTypeSpatial,
     VoxelVectorTypeColorRGB,
     VoxelVectorTypeColorRGBA,
     VoxelVectorType_Last // must be last
-  };
+    };
 
   ///
-  /// Specify file name for the image file. You should specify either
-  /// a FileName or a FilePrefix. Use FilePrefix if the data is stored
-  /// in multiple files.
+  /// Specify file name for the image file.
   void SetFileName(const char *);
 
   char* GetFileName()
-    {
+  {
     return FileName;
-    }
+  }
 
   ///
   /// Use compression if possible
@@ -69,25 +71,33 @@ public:
 
   /// Set orientation matrix
   void SetRasToIJKMatrix(vtkMatrix4x4* mat)
-    {
+  {
     RasToIJKMatrix = mat;
-    }
+  }
 
   /// Set orientation matrix
   void SetMeasurementFrameMatrix(vtkMatrix4x4* mat)
-    {
+  {
     MeasurementFrameMatrix = mat;
-    }
+  }
 
   /// Defines how to interpret voxel components
   vtkSetMacro(VoxelVectorType, int);
   vtkGetMacro(VoxelVectorType, int);
 
 protected:
-  vtkITKImageWriter();
-  ~vtkITKImageWriter() override;
+  vtkITKImageSequenceWriter();
+  ~vtkITKImageSequenceWriter() override;
 
-  char *FileName;
+  /**
+   * Fill the input port information objects for this algorithm.  This
+   * is invoked by the first call to GetInputPortInformation for each
+   * port so subclasses can specify what they can handle.
+   */
+  int FillInputPortInformation(int port, vtkInformation* info) override;
+
+protected:
+  char* FileName;
   vtkMatrix4x4* RasToIJKMatrix;
   vtkMatrix4x4* MeasurementFrameMatrix;
   int UseCompression;
@@ -95,10 +105,8 @@ protected:
   int VoxelVectorType;
 
 private:
-  vtkITKImageWriter(const vtkITKImageWriter&) = delete;
-  void operator=(const vtkITKImageWriter&) = delete;
+  vtkITKImageSequenceWriter(const vtkITKImageSequenceWriter&) = delete;
+  void operator=(const vtkITKImageSequenceWriter&) = delete;
 };
-
-//vtkStandardNewMacro(vtkITKImageWriter);
 
 #endif
