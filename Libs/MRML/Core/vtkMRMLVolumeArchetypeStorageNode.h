@@ -87,9 +87,9 @@ public:
   //@}
 
   /// Convert voxel vector type enum from VTKITK type to MRML type
-  int ConvertVoxelVectorTypeVTKITKToMRML(int vtkitkType);
+  static int ConvertVoxelVectorTypeVTKITKToMRML(int vtkitkType);
   /// Convert voxel vector type enum from MRML type to VTKITK type
-  int ConvertVoxelVectorTypeMRMLToVTKITK(int mrmlType);
+  static int ConvertVoxelVectorTypeMRMLToVTKITK(int mrmlType);
 
   /// Return true if the reference node is supported by the storage node
   bool CanReadInReferenceNode(vtkMRMLNode* refNode) override;

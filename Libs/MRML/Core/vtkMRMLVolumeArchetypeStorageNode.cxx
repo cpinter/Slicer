@@ -164,28 +164,28 @@ void vtkMRMLVolumeArchetypeStorageNode::PrintSelf(ostream& os, vtkIndent indent)
 int vtkMRMLVolumeArchetypeStorageNode::ConvertVoxelVectorTypeMRMLToVTKITK(int mrmlType)
 {
   switch (mrmlType)
-    {
+  {
     case vtkMRMLVolumeNode::VoxelVectorTypeUndefined: return vtkITKImageWriter::VoxelVectorTypeUndefined;
     case vtkMRMLVolumeNode::VoxelVectorTypeSpatial: return vtkITKImageWriter::VoxelVectorTypeSpatial;
     case vtkMRMLVolumeNode::VoxelVectorTypeColorRGB: return vtkITKImageWriter::VoxelVectorTypeColorRGB;
     case vtkMRMLVolumeNode::VoxelVectorTypeColorRGBA: return vtkITKImageWriter::VoxelVectorTypeColorRGBA;
     default:
       return vtkITKImageWriter::VoxelVectorTypeUndefined;
-    }
+  }
 }
 
 //----------------------------------------------------------------------------
 int vtkMRMLVolumeArchetypeStorageNode::ConvertVoxelVectorTypeVTKITKToMRML(int vtkitkType)
 {
   switch (vtkitkType)
-    {
+  {
     case vtkITKImageWriter::VoxelVectorTypeUndefined: return vtkMRMLVolumeNode::VoxelVectorTypeUndefined;
     case vtkITKImageWriter::VoxelVectorTypeSpatial: return vtkMRMLVolumeNode::VoxelVectorTypeSpatial;
     case vtkITKImageWriter::VoxelVectorTypeColorRGB: return vtkMRMLVolumeNode::VoxelVectorTypeColorRGB;
     case vtkITKImageWriter::VoxelVectorTypeColorRGBA: return vtkMRMLVolumeNode::VoxelVectorTypeColorRGBA;
     default:
       return vtkMRMLVolumeNode::VoxelVectorTypeUndefined;
-    }
+  }
 }
 
 //----------------------------------------------------------------------------

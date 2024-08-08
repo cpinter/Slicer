@@ -7,10 +7,12 @@ or http://www.slicer.org/copyright/copyright.txt for details.
 
 =========================================================================auto=*/
 
+#include "vtkMRMLVolumeSequenceStorageNode.h"
+
 // MRML includes
 #include "vtkMRMLI18N.h"
 #include "vtkMRMLMessageCollection.h"
-#include "vtkMRMLVolumeSequenceStorageNode.h"
+#include "vtkMRMLVolumeArchetypeStorageNode.h"
 
 #include "vtkMRMLScalarVolumeNode.h"
 #include "vtkMRMLSequenceNode.h"
@@ -46,34 +48,6 @@ vtkMRMLVolumeSequenceStorageNode::vtkMRMLVolumeSequenceStorageNode() = default;
 
 //----------------------------------------------------------------------------
 vtkMRMLVolumeSequenceStorageNode::~vtkMRMLVolumeSequenceStorageNode() = default;
-
-//----------------------------------------------------------------------------
-int vtkMRMLVolumeSequenceStorageNode::ConvertVoxelVectorTypeMRMLToVTKITK(int mrmlType)
-{
-  switch (mrmlType)
-  {
-    case vtkMRMLVolumeNode::VoxelVectorTypeUndefined: return vtkITKImageSequenceWriter::VoxelVectorTypeUndefined;
-    case vtkMRMLVolumeNode::VoxelVectorTypeSpatial: return vtkITKImageSequenceWriter::VoxelVectorTypeSpatial;
-    case vtkMRMLVolumeNode::VoxelVectorTypeColorRGB: return vtkITKImageSequenceWriter::VoxelVectorTypeColorRGB;
-    case vtkMRMLVolumeNode::VoxelVectorTypeColorRGBA: return vtkITKImageSequenceWriter::VoxelVectorTypeColorRGBA;
-    default:
-      return vtkITKImageSequenceWriter::VoxelVectorTypeUndefined;
-  }
-}
-
-//----------------------------------------------------------------------------
-int vtkMRMLVolumeSequenceStorageNode::ConvertVoxelVectorTypeVTKITKToMRML(int vtkitkType)
-{
-  switch (vtkitkType)
-  {
-    case vtkITKImageSequenceWriter::VoxelVectorTypeUndefined: return vtkMRMLVolumeNode::VoxelVectorTypeUndefined;
-    case vtkITKImageSequenceWriter::VoxelVectorTypeSpatial: return vtkMRMLVolumeNode::VoxelVectorTypeSpatial;
-    case vtkITKImageSequenceWriter::VoxelVectorTypeColorRGB: return vtkMRMLVolumeNode::VoxelVectorTypeColorRGB;
-    case vtkITKImageSequenceWriter::VoxelVectorTypeColorRGBA: return vtkMRMLVolumeNode::VoxelVectorTypeColorRGBA;
-    default:
-      return vtkMRMLVolumeNode::VoxelVectorTypeUndefined;
-  }
-}
 
 //----------------------------------------------------------------------------
 bool vtkMRMLVolumeSequenceStorageNode::CanReadInReferenceNode(vtkMRMLNode *refNode)
@@ -328,7 +302,7 @@ int vtkMRMLVolumeSequenceStorageNode::WriteDataInternal(vtkMRMLNode* refNode)
   writer->SetRasToIJKMatrix(firstVolumeRasToIjk.GetPointer());
 
   // Pass on voxel type to the writer (NRRD kind of first axis)
-  writer->SetVoxelVectorType(this->ConvertVoxelVectorTypeMRMLToVTKITK(frameVolumeVoxelVectorType));
+  writer->SetVoxelVectorType(vtkMRMLVolumeArchetypeStorageNode::ConvertVoxelVectorTypeMRMLToVTKITK(frameVolumeVoxelVectorType));
 
   // Setup writer
   for (int frameIndex=0; frameIndex<numberOfFrameVolumes; frameIndex++)

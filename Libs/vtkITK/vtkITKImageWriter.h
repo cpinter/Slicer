@@ -48,9 +48,9 @@ public:
   void SetFileName(const char *);
 
   char* GetFileName()
-    {
+  {
     return FileName;
-    }
+  }
 
   ///
   /// Use compression if possible
@@ -69,15 +69,15 @@ public:
 
   /// Set orientation matrix
   void SetRasToIJKMatrix(vtkMatrix4x4* mat)
-    {
+  {
     RasToIJKMatrix = mat;
-    }
+  }
 
   /// Set orientation matrix
   void SetMeasurementFrameMatrix(vtkMatrix4x4* mat)
-    {
+  {
     MeasurementFrameMatrix = mat;
-    }
+  }
 
   /// Defines how to interpret voxel components
   vtkSetMacro(VoxelVectorType, int);
