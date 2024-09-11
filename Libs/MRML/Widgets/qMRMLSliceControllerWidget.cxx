@@ -1609,9 +1609,9 @@ void qMRMLSliceControllerWidgetPrivate::setupSlabReconstructionMenu()
   slabReconstructionThicknessMenu->setObjectName("slicerSpacingManualMode");
   this->SlabReconstructionThicknessSpinBox = new ctkDoubleSpinBox(slabReconstructionThicknessMenu);
   this->SliceSpacingSpinBox->setDecimals(3);
-  this->SlabReconstructionThicknessSpinBox->setRange(1., VTK_FLOAT_MAX);
-  this->SlabReconstructionThicknessSpinBox->setSingleStep(0.1);
-  this->SlabReconstructionThicknessSpinBox->setValue(1.);
+  this->SlabReconstructionThicknessSpinBox->setRange(0.001, VTK_FLOAT_MAX);
+  this->SlabReconstructionThicknessSpinBox->setSingleStep(0.01);
+  this->SlabReconstructionThicknessSpinBox->setValue(0.1);
   QObject::connect(this->SlabReconstructionThicknessSpinBox, SIGNAL(valueChanged(double)),
                    q, SLOT(setSlabReconstructionThickness(double)));
   QWidgetAction* slabReconstructionThicknessAction = new QWidgetAction(slabReconstructionThicknessMenu);
