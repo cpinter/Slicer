@@ -162,11 +162,6 @@ public:
   virtual bool GetColor(int ind, double color[4]) = 0;
 
   ///
-  /// Name of the file name from which to read color information
-  vtkSetStringMacro(FileName);
-  vtkGetStringMacro(FileName);
-
-  ///
   /// Most color nodes will implement a look up table, so provide a top level
   /// get method
   virtual vtkLookupTable* GetLookupTable();
@@ -228,7 +223,7 @@ protected:
     vtkSmartPointer<vtkCodedEntry> AnatomicRegionModifier;
   };
 
-   bool GetProperty(int ind, PropertyType& prop);
+  bool GetProperty(int ind, PropertyType& prop);
 
   ///
   /// Set values in the names vector from the colors in the node
@@ -247,10 +242,6 @@ protected:
   ///
   /// A vector of names for the color table elements
   std::vector<PropertyType> Properties;
-
-  ///
-  /// A file name to read text attributes from
-  char* FileName;
 
   ///
   /// the string used for an unnamed color

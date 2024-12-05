@@ -31,7 +31,6 @@ Version:   $Revision: 1.0 $
 //----------------------------------------------------------------------------
 vtkMRMLColorNode::vtkMRMLColorNode()
 {
-  this->FileName = nullptr; //TODO: Remove member
   this->Type = -1;
   this->HideFromEditors = 1;
 
@@ -42,12 +41,6 @@ vtkMRMLColorNode::vtkMRMLColorNode()
 //----------------------------------------------------------------------------
 vtkMRMLColorNode::~vtkMRMLColorNode()
 {
-  if (this->FileName)
-  {
-    delete [] this->FileName;
-    this->FileName = nullptr;
-  }
-
   if (this->NoName)
   {
     delete [] this->NoName;
@@ -63,11 +56,6 @@ void vtkMRMLColorNode::WriteXML(ostream& of, int nIndent)
   Superclass::WriteXML(of, nIndent);
 
   of << " type=\"" << this->GetType() << "\"";
-
-  if (this->FileName != nullptr)
-  {
-    // don't write it out, it's handled by the storage node
-  }
 }
 
 //----------------------------------------------------------------------------
@@ -97,9 +85,6 @@ void vtkMRMLColorNode::ReadXMLAttributes(const char** atts)
     }
     else if (!strcmp(attName, "filename"))
     {
-      this->SetFileName(attValue);
-      // don't read in the file with the colors, it's handled by the storage
-      // node
       if (this->GetStorageNode() == nullptr)
       {
         vtkWarningMacro("A color node has a file name, but no storage node, trying to create one");
@@ -111,14 +96,14 @@ void vtkMRMLColorNode::ReadXMLAttributes(const char** atts)
 }
 
 //----------------------------------------------------------------------------
-vtkLookupTable * vtkMRMLColorNode::GetLookupTable()
+vtkLookupTable* vtkMRMLColorNode::GetLookupTable()
 {
   vtkDebugMacro("Subclass has not implemented GetLookupTable, returning NULL");
   return nullptr;
 }
 
 //----------------------------------------------------------------------------
-vtkScalarsToColors * vtkMRMLColorNode::GetScalarsToColors()
+vtkScalarsToColors* vtkMRMLColorNode::GetScalarsToColors()
 {
   return this->GetLookupTable();
 }
@@ -139,7 +124,6 @@ void vtkMRMLColorNode::Copy(vtkMRMLNode *anode)
     // very slow
     this->Type = node->Type;
   }
-  this->SetFileName(node->FileName);
   this->SetNoName(node->NoName);
 
   // copy names
