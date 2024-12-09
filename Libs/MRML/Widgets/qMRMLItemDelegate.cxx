@@ -63,7 +63,7 @@ bool qMRMLItemDelegate::isColor(const QModelIndex& index)const
   }
   else if ( editData.isNull() &&
             decorationData.type() == QVariant::Pixmap &&
-            index.data(Qt::UserRole + 2).type() == QVariant::Color ) //TODO: qMRMLColorModel::ColorRole was used here, need to fix
+            index.data(qMRMLItemDelegate::ColorRole).type() == QVariant::Color )
   {
     return true;
   }
@@ -74,14 +74,14 @@ bool qMRMLItemDelegate::isColor(const QModelIndex& index)const
 int qMRMLItemDelegate::colorRole(const QModelIndex& index)const
 {
   QVariant decorationData = index.data(Qt::DecorationRole);
-  QVariant colorData = index.data(Qt::UserRole + 2); //TODO: qMRMLColorModel::ColorRole was used here, need to fix
+  QVariant colorData = index.data(qMRMLItemDelegate::ColorRole);
   if (decorationData.type() == QVariant::Color)
   {
     return Qt::DecorationRole;
   }
   else if (colorData.type() == QVariant::Color)
   {
-    return Qt::UserRole + 2; //TODO: qMRMLColorModel::ColorRole was used here, need to fix
+    return qMRMLItemDelegate::ColorRole;
   }
   return -1;
 }
