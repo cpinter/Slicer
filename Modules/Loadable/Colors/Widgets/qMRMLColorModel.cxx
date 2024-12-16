@@ -406,8 +406,7 @@ void qMRMLColorModel::updateItemFromColor(QStandardItem* item, int color, int co
       item->setData(QVariant(), Qt::DecorationRole);
       item->setData(QColor(), qMRMLItemDelegate::ColorRole);
     }
-    item->setData(validColor && column != d->LabelColumn ?
-      pixmap.size() : QVariant(), Qt::SizeHintRole);
+    item->setData(validColor && column != d->LabelColumn ? pixmap.size() : QVariant(), Qt::SizeHintRole);
     item->setToolTip(colorName);
   }
   if (column == d->LabelColumn)
@@ -442,6 +441,7 @@ void qMRMLColorModel::updateItemFromColor(QStandardItem* item, int color, int co
     }
     item->setText(terminologyStrList.join(", "));
     item->setToolTip(terminologyStrList.join("\n"));
+    item->setData(QVariant::fromValue(reinterpret_cast<long long>(d->MRMLColorNode.GetPointer())), qMRMLItemDelegate::PointerRole);
   }
   if (column == d->CheckableColumn)
   {

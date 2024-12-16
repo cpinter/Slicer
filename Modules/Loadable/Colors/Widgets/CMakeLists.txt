@@ -23,6 +23,12 @@ set(${KIT}_SRCS
   qMRMLColorTableView.h
   qSlicerColorTableTerminologyDelegate.cxx
   qSlicerColorTableTerminologyDelegate.h
+  qSlicerTerminologyEditorWidget.cxx
+  qSlicerTerminologyEditorWidget.h
+  qSlicerTerminologyEditorButton.cxx
+  qSlicerTerminologyEditorButton.h
+  qSlicerTerminologyEditorDialog.cxx
+  qSlicerTerminologyEditorDialog.h
   )
 
 set(${KIT}_MOC_SRCS
@@ -32,11 +38,15 @@ set(${KIT}_MOC_SRCS
   qMRMLColorPickerWidget.h
   qMRMLColorTableView.h
   qSlicerColorTableTerminologyDelegate.h
+  qSlicerTerminologyEditorWidget.h
+  qSlicerTerminologyEditorButton.h
+  qSlicerTerminologyEditorDialog.h
   )
 
 set(${KIT}_UI_SRCS
   Resources/UI/qMRMLColorLegendDisplayNodeWidget.ui
   Resources/UI/qMRMLColorPickerWidget.ui
+  Resources/UI/qSlicerTerminologyEditorWidget.ui
   )
 
 set(${KIT}_RESOURCES
@@ -47,6 +57,7 @@ set(${KIT}_TARGET_LIBRARIES
   vtkSlicer${MODULE_NAME}ModuleLogic
   vtkSlicer${MODULE_NAME}ModuleMRML
   qSlicerTerminologiesModuleWidgets
+  qMRMLWidgets
   )
 
 #-----------------------------------------------------------------------------

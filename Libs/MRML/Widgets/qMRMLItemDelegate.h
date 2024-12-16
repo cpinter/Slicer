@@ -49,6 +49,7 @@ public:
   /// Qt::DecorationRole contains a pixmap of the color.
   enum ItemDataRole {
     ColorEntryRole = Qt::UserRole,
+    PointerRole,
     ColorRole
   };
 

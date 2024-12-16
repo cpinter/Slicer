@@ -84,12 +84,10 @@ QWidget* qSlicerTerminologyItemDelegate::createEditor(QWidget* parent, const QSt
     ctkColorPickerButton* colorPicker = new ctkColorPickerButton(parent);
     colorPicker->setProperty("changeColorOnSet", true);
     colorPicker->setDisplayColorName(false);
-    ctkColorPickerButton::ColorDialogOptions options
-      = ctkColorPickerButton::ShowAlphaChannel
-      | ctkColorPickerButton::UseCTKColorDialog;
+    ctkColorPickerButton::ColorDialogOptions options = ctkColorPickerButton::ShowAlphaChannel | ctkColorPickerButton::UseCTKColorDialog;
     colorPicker->setDialogOptions(options);
     connect(colorPicker, SIGNAL(colorChanged(QColor)), this, SLOT(commitAndClose()), Qt::QueuedConnection);
-    // To Do: add in ctkColorPickerButton a cancel signal and connect it with close method
+    //TODO: add in ctkColorPickerButton a cancel signal and connect it with close method
     return colorPicker;
   }
 

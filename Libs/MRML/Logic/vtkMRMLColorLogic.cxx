@@ -414,8 +414,7 @@ vtkMRMLColorNode* vtkMRMLColorLogic::LoadColorFile(const char *fileName, const c
       std::string uname( this->GetMRMLScene()->GetUniqueNameByString(nodeName));
       node->SetName(uname.c_str());
     }
-    addedNode =
-      vtkMRMLColorNode::SafeDownCast(this->GetMRMLScene()->AddNode(node));
+    addedNode = vtkMRMLColorNode::SafeDownCast(this->GetMRMLScene()->AddNode(node));
     vtkDebugMacro("LoadColorFile: Done: Read and added file node: " <<  fileName);
     node->Delete();
   }
@@ -437,8 +436,7 @@ vtkMRMLColorNode* vtkMRMLColorLogic::LoadColorFile(const char *fileName, const c
         std::string uname( this->GetMRMLScene()->GetUniqueNameByString(nodeName));
         procNode->SetName(uname.c_str());
       }
-      addedNode =
-        vtkMRMLColorNode::SafeDownCast(this->GetMRMLScene()->AddNode(procNode));
+      addedNode = vtkMRMLColorNode::SafeDownCast(this->GetMRMLScene()->AddNode(procNode));
       vtkDebugMacro("LoadColorFile: Done: Read and added file procNode: " <<  fileName);
       procNode->Delete();
     }
@@ -689,7 +687,7 @@ vtkMRMLColorTableNode* vtkMRMLColorLogic::CreateFileNode(const char* fileName)
 //--------------------------------------------------------------------------------
 vtkMRMLProceduralColorNode* vtkMRMLColorLogic::CreateProceduralFileNode(const char* fileName)
 {
-  vtkMRMLProceduralColorNode * cpnode =  vtkMRMLProceduralColorNode::New();
+  vtkMRMLProceduralColorNode* cpnode =  vtkMRMLProceduralColorNode::New();
   cpnode->SetTypeToFile();
   cpnode->SaveWithSceneOff();
   cpnode->HideFromEditorsOn();
@@ -733,8 +731,7 @@ vtkMRMLProceduralColorNode* vtkMRMLColorLogic::CreateProceduralFileNode(const ch
       return nullptr;
   }
   vtkDebugMacro("CreateProceduralFileNode: finished reading user procedural color file " << fileName);
-  cpnode->SetSingletonTag(
-    this->GetFileColorNodeSingletonTag(fileName).c_str());
+  cpnode->SetSingletonTag(this->GetFileColorNodeSingletonTag(fileName).c_str());
 
   return cpnode;
 }

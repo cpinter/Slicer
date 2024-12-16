@@ -23,7 +23,6 @@
 
 // Qt includes
 #include <QTableView>
-#include <QItemDelegate>
 
 // Colors includes
 #include "qSlicerColorsModuleWidgetsExport.h"
