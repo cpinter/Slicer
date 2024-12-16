@@ -29,7 +29,6 @@
 
 // Colors includes
 #include "qSlicerTerminologyEditorButton.h"
-//#include "qSlicerTerminologyEditorWidget.h"
 
 // Slicer includes
 #include <qSlicerCoreApplication.h>
@@ -162,6 +161,28 @@ void qSlicerColorTableTerminologyDelegate::setModelData(QWidget* editor, QAbstra
   }
 
   colorNode->SetTerminologyFromString(colorIndex, logic->SerializeTerminologyEntry(entry));
+
+  // Set text
+  std::vector<vtkCodedEntry*> terminologyEntries
+  {
+    colorNode->GetTerminologyCategory(colorIndex),
+    colorNode->GetTerminologyType(colorIndex),
+    colorNode->GetTerminologyTypeModifier(colorIndex),
+    colorNode->GetTerminologyAnatomicRegion(colorIndex),
+    colorNode->GetTerminologyAnatomicRegionModifier(colorIndex)
+  };
+  QStringList terminologyStrList;
+  for (auto entry : terminologyEntries)
+  {
+    if (entry == nullptr)
+    {
+      continue;
+    }
+    terminologyStrList.append(QString::fromUtf8(entry->GetCodeMeaning()));
+  }
+
+  //QStyledItemDelegate::setModelData(editor, model, index);
+  model->setData(index, terminologyStrList.join(", "), Qt::DisplayRole);
 }
 
 //-----------------------------------------------------------------------------

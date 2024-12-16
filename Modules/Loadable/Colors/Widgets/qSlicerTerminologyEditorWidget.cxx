@@ -18,9 +18,12 @@
 
 ==============================================================================*/
 
-// qMRML includes
+// Colors includes
 #include "qSlicerTerminologyEditorWidget.h"
 #include "ui_qSlicerTerminologyEditorWidget.h"
+
+// Terminologies includes
+#include "qSlicerTerminologySelectorDialog.h"
 
 //------------------------------------------------------------------------------
 class qSlicerTerminologyEditorWidgetPrivate : public Ui_qSlicerTerminologyEditorWidget
@@ -44,6 +47,8 @@ void qSlicerTerminologyEditorWidgetPrivate::init()
 {
   Q_Q(qSlicerTerminologyEditorWidget);
   this->setupUi(q);
+
+  QObject::connect(this->selectFromTerminologyButton, SIGNAL(clicked()), q, SLOT(onSelectFromTerminology()));
 }
 
 //------------------------------------------------------------------------------
@@ -123,4 +128,14 @@ void qSlicerTerminologyEditorWidget::setTerminologyInfo(qSlicerTerminologyNaviga
   d->anatomicRegionModifierCodeMeaningLineEdit->setText(terminologyInfo.GetTerminologyEntry()->GetAnatomicRegionModifierObject()->GetCodeMeaning());
   d->anatomicRegionModifierCodeValueLineEdit->setText(terminologyInfo.GetTerminologyEntry()->GetAnatomicRegionModifierObject()->GetCodeValue());
   d->anatomicRegionModifierCSDLineEdit->setText(terminologyInfo.GetTerminologyEntry()->GetAnatomicRegionModifierObject()->GetCodingSchemeDesignator());
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerTerminologyEditorWidget::onSelectFromTerminology()
+{
+  Q_D(qSlicerTerminologyEditorWidget);
+
+  qSlicerTerminologyNavigatorWidget::TerminologyInfoBundle terminologyInfo;
+  qSlicerTerminologySelectorDialog::getTerminology(terminologyInfo, this);
+  this->setTerminologyInfo(terminologyInfo);
 }

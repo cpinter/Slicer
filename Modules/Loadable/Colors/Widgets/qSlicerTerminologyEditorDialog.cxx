@@ -82,6 +82,8 @@ void qSlicerTerminologyEditorDialogPrivate::init()
   buttonsLayout->setSpacing(4);
   buttonsLayout->setContentsMargins(4, 4, 4, 4);
 
+  buttonsLayout->addSpacing(16);
+
   this->SaveButton = new QPushButton("Save");
   this->SaveButton->setDefault(true);
   //this->SaveButton->setEnabled(false); // Disabled until terminology selection becomes valid //TODO:
