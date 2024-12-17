@@ -181,7 +181,6 @@ void qSlicerColorTableTerminologyDelegate::setModelData(QWidget* editor, QAbstra
     terminologyStrList.append(QString::fromUtf8(entry->GetCodeMeaning()));
   }
 
-  //QStyledItemDelegate::setModelData(editor, model, index);
   model->setData(index, terminologyStrList.join(", "), Qt::DisplayRole);
 }
 

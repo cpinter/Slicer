@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>371</width>
-    <height>218</height>
+    <height>210</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -91,10 +91,10 @@
           <number>0</number>
          </property>
          <item>
-          <widget class="QLineEdit" name="typeModifierCSDLineEdit"/>
+          <widget class="QLineEdit" name="typeModifierCodeValueLineEdit"/>
          </item>
          <item>
-          <widget class="QLineEdit" name="typeModifierCodeValueLineEdit"/>
+          <widget class="QLineEdit" name="typeModifierCSDLineEdit"/>
          </item>
         </layout>
        </widget>
@@ -168,10 +168,10 @@
           <number>0</number>
          </property>
          <item>
-          <widget class="QLineEdit" name="typeCSDLineEdit"/>
+          <widget class="QLineEdit" name="typeCodeValueLineEdit"/>
          </item>
          <item>
-          <widget class="QLineEdit" name="typeCodeValueLineEdit"/>
+          <widget class="QLineEdit" name="typeCSDLineEdit"/>
          </item>
         </layout>
        </widget>
@@ -278,10 +278,10 @@
              <number>0</number>
             </property>
             <item>
-             <widget class="QLineEdit" name="anatomicRegionModifierCSDLineEdit"/>
+             <widget class="QLineEdit" name="anatomicRegionModifierCodeValueLineEdit"/>
             </item>
             <item>
-             <widget class="QLineEdit" name="anatomicRegionModifierCodeValueLineEdit"/>
+             <widget class="QLineEdit" name="anatomicRegionModifierCSDLineEdit"/>
             </item>
            </layout>
           </widget>
@@ -330,10 +330,10 @@
           <number>0</number>
          </property>
          <item>
-          <widget class="QLineEdit" name="anatomicRegionCSDLineEdit"/>
+          <widget class="QLineEdit" name="anatomicRegionCodeValueLineEdit"/>
          </item>
          <item>
-          <widget class="QLineEdit" name="anatomicRegionCodeValueLineEdit"/>
+          <widget class="QLineEdit" name="anatomicRegionCSDLineEdit"/>
          </item>
         </layout>
        </widget>
@@ -447,7 +447,7 @@
         </sizepolicy>
        </property>
        <property name="frameShape">
-        <enum>QFrame::StyledPanel</enum>
+        <enum>QFrame::NoFrame</enum>
        </property>
        <property name="frameShadow">
         <enum>QFrame::Raised</enum>
