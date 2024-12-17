@@ -190,3 +190,17 @@ void qSlicerTerminologyEditorDialog::setSaveButtonEnabled(bool enabled)
   Q_D(qSlicerTerminologyEditorDialog);
   d->SaveButton->setEnabled(enabled);
 }
+
+////-----------------------------------------------------------------------------
+//bool qSlicerTerminologyEditorDialog::overrideSectionVisible() const
+//{
+//  Q_D(const qSlicerTerminologySelectorDialog);
+//  return d->NavigatorWidget->overrideSectionVisible();
+//}
+//
+////-----------------------------------------------------------------------------
+//void qSlicerTerminologyEditorDialog::setOverrideSectionVisible(bool visible)
+//{
+//  Q_D(qSlicerTerminologySelectorDialog);
+//  d->NavigatorWidget->setOverrideSectionVisible(visible);
+//}
