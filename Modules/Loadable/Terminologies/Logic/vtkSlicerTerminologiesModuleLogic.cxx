@@ -27,7 +27,8 @@
 #include "vtkSlicerTerminologyCategory.h"
 #include "vtkSlicerTerminologyType.h"
 
-// MRMLLogic includes
+// MRML includes
+#include <vtkMRMLColorNode.h>
 #include <vtkMRMLScene.h>
 
 // Slicer includes
@@ -1307,6 +1308,29 @@ bool vtkSlicerTerminologiesModuleLogic::LoadAnatomicContextFromSegmentDescriptor
   fclose(fp);
   this->Modified();
   return true;
+}
+
+//---------------------------------------------------------------------------
+void vtkSlicerTerminologiesModuleLogic::LoadCompatibleColorTables(std::vector<std::string> &terminologyNames)
+{
+  vtkMRMLScene* scene = this->GetMRMLScene();
+  if (scene == nullptr)
+  {
+    return;
+  }
+
+  for (int i=0; i<scene->GetNumberOfNodesByClass("vtkMRMLColorNode"); ++i)
+  {
+    vtkMRMLColorNode* colorNode = vtkMRMLColorNode::SafeDownCast(scene->GetNthNodeByClass(i, "vtkMRMLColorNode"));
+    const char* terminologyAttr = colorNode->GetAttribute(colorNode->GetContainTerminologyAttributeName());
+    if (terminologyAttr != nullptr && !strcmp(terminologyAttr, "true"))
+    {
+      if (this->LoadColorTable(colorNode))
+      {
+        terminologyNames.push_back(colorNode->GetName()); //TODO: Need to store actual terminology empty if all are from the same context
+      }
+    }
+  }
 }
 
 //---------------------------------------------------------------------------
@@ -2712,6 +2736,327 @@ bool vtkSlicerTerminologiesModuleLogic::AreCodedEntriesEqual(vtkCodedEntry* code
   {
     // One is nullptr/empty, the other is not
     return false;
+  }
+
+  return true;
+}
+
+//-----------------------------------------------------------------------------
+bool vtkSlicerTerminologiesModuleLogic::LoadColorTable(vtkMRMLColorNode* colorNode)
+{
+  if (colorNode == nullptr || colorNode->GetName() == nullptr)
+  {
+    vtkErrorMacro("LoadColorTable: Invalid color node given");
+    return false;
+  }
+
+  // Create terminology entries from each color
+  vtkNew<vtkCollection> terminologyEntries;
+  for (int idx=0; idx<colorNode->GetNumberOfColors(); ++idx)
+  {
+    std::string terminologyStr = colorNode->GetTerminologyAsString(idx);
+    if (terminologyStr.empty())
+    {
+      continue;
+    }
+    vtkNew<vtkSlicerTerminologyEntry> entry;
+    if (!this->DeserializeTerminologyEntry(terminologyStr, entry))
+    {
+      continue; // No terminology yet for the current color
+    }
+    terminologyEntries->AddItem(entry);
+  }
+  if (terminologyEntries->GetNumberOfItems() == 0)
+  {
+    vtkErrorMacro("LoadColorTable: Failed to find terminology in color node " << colorNode->GetName());
+    return false; // No terminology found in color table
+  }
+
+  // Create new terminology context document
+  rapidjson::Document* termDoc = new rapidjson::Document;
+  rapidjson::Document::AllocatorType& allocator = termDoc->GetAllocator();
+  termDoc->SetObject(); // Create a root object
+
+  // Add members to the root object
+  std::string terminologyContextName(colorNode->GetName()); //TODO: No terminology (or anatomical) context in the entry
+  rapidjson::Value nodeNameString(rapidjson::kStringType);
+  nodeNameString.SetString(terminologyContextName.c_str(), terminologyContextName.length(), allocator);
+  termDoc->AddMember("SegmentationCategoryTypeContextName", nodeNameString, allocator);
+  termDoc->AddMember("@schema", "https://raw.githubusercontent.com/qiicr/dcmqi/master/doc/segment-context-schema.json#", allocator);
+
+  rapidjson::Value segmentationCodesObject(rapidjson::kObjectType);
+  termDoc->AddMember("SegmentationCodes", segmentationCodesObject, allocator);
+
+  rapidjson::Value categoriesArray(rapidjson::kArrayType);
+  (*termDoc)["SegmentationCodes"].AddMember("Category", categoriesArray, allocator);
+
+  // Collect category, type, etc. entries and construct terminology JSON content
+  std::vector<vtkSlicerTerminologyEntry*> entriesWithAnatomicRegion;
+  for (int entryIdx=0; entryIdx<terminologyEntries->GetNumberOfItems(); ++entryIdx)
+  {
+    vtkSlicerTerminologyEntry* entry = vtkSlicerTerminologyEntry::SafeDownCast(terminologyEntries->GetItemAsObject(entryIdx));
+
+    // Category
+    vtkSlicerTerminologyCategory* category = entry->GetCategoryObject();
+    if (category == nullptr)
+    {
+      continue; // Empty terminology entry
+    }
+    if (category->GetCodeMeaning() == nullptr || category->GetCodeValue() == nullptr || category->GetCodingSchemeDesignator() == nullptr)
+    {
+      vtkErrorMacro("LoadColorTable: Invalid category found in terminology entry.");
+      continue;
+    }
+    int foundCategoryIdx{-1};
+    rapidjson::Value& categoryObject = this->Internal->GetCodeInArray(
+      this->GetCodeIdentifierFromCodedEntry(category), (*termDoc)["SegmentationCodes"]["Category"], foundCategoryIdx);
+    if (categoryObject.IsNull())
+    {
+      // Create category if does not exist yet
+      categoryObject = rapidjson::Value(rapidjson::kObjectType);
+
+      std::string codeMeaning(category->GetCodeMeaning());
+      rapidjson::Value codeMeaningString(rapidjson::kStringType);
+      codeMeaningString.SetString(category->GetCodeMeaning(), codeMeaning.length(), allocator);
+      categoryObject.AddMember("CodeMeaning", codeMeaningString, allocator);
+
+      std::string codeValue(category->GetCodeValue());
+      rapidjson::Value codeValueString(rapidjson::kStringType);
+      codeValueString.SetString(category->GetCodeValue(), codeValue.length(), allocator);
+      categoryObject.AddMember("CodeValue", codeValueString, allocator);
+
+      std::string codingSchemeDesignator(category->GetCodingSchemeDesignator());
+      rapidjson::Value codingSchemeDesignatorString(rapidjson::kStringType);
+      codingSchemeDesignatorString.SetString(category->GetCodingSchemeDesignator(), codingSchemeDesignator.length(), allocator);
+      categoryObject.AddMember("CodingSchemeDesignator", codingSchemeDesignatorString, allocator);
+
+      rapidjson::Value typesArray(rapidjson::kArrayType);
+      categoryObject.AddMember("Type", typesArray, allocator);
+
+      foundCategoryIdx = (*termDoc)["SegmentationCodes"]["Category"].Size();
+      // Note: When array.PushBack is being executed, array has already been moved into document, and becomes a null value type (array.IsNull() == true).
+      //   You cannot PushBack to a null value, so need to access the object from the root.
+      (*termDoc)["SegmentationCodes"]["Category"].PushBack(categoryObject, allocator);
+    }
+
+    // Type
+    vtkSlicerTerminologyType* type = entry->GetTypeObject();
+    if (type->GetCodeMeaning() == nullptr || type->GetCodeValue() == nullptr || type->GetCodingSchemeDesignator() == nullptr)
+    {
+      vtkErrorMacro("LoadColorTable: Invalid type found in terminology entry.");
+      continue;
+    }
+    int foundTypeIdx{-1};
+    rapidjson::Value& typeObject = this->Internal->GetCodeInArray(this->GetCodeIdentifierFromCodedEntry(type),
+      (*termDoc)["SegmentationCodes"]["Category"][foundCategoryIdx]["Type"], foundTypeIdx);
+    if (typeObject.IsNull())
+    {
+      // Create type if does not exist yet
+      typeObject = rapidjson::Value(rapidjson::kObjectType);
+
+      std::string codeMeaning(type->GetCodeMeaning());
+      rapidjson::Value codeMeaningString(rapidjson::kStringType);
+      codeMeaningString.SetString(type->GetCodeMeaning(), codeMeaning.length(), allocator);
+      typeObject.AddMember("CodeMeaning", codeMeaningString, allocator);
+
+      std::string codeValue(type->GetCodeValue());
+      rapidjson::Value codeValueString(rapidjson::kStringType);
+      codeValueString.SetString(type->GetCodeValue(), codeValue.length(), allocator);
+      typeObject.AddMember("CodeValue", codeValueString, allocator);
+
+      std::string codingSchemeDesignator(type->GetCodingSchemeDesignator());
+      rapidjson::Value codingSchemeDesignatorString(rapidjson::kStringType);
+      codingSchemeDesignatorString.SetString(type->GetCodingSchemeDesignator(), codingSchemeDesignator.length(), allocator);
+      typeObject.AddMember("CodingSchemeDesignator", codingSchemeDesignatorString, allocator);
+
+      foundTypeIdx = (*termDoc)["SegmentationCodes"]["Category"][foundCategoryIdx]["Type"].Size();
+      (*termDoc)["SegmentationCodes"]["Category"][foundCategoryIdx]["Type"].PushBack(typeObject, allocator);
+    }
+
+    // Type modifier
+    vtkSlicerTerminologyType* typeModifier = entry->GetTypeModifierObject();
+    if (typeModifier != nullptr)
+    {
+      if (typeModifier->GetCodeMeaning() == nullptr || typeModifier->GetCodeValue() == nullptr || typeModifier->GetCodingSchemeDesignator() == nullptr)
+      {
+        vtkErrorMacro("LoadColorTable: Invalid type modifier found in terminology entry.");
+        continue;
+      }
+      int foundTypeModifierIdx{-1};
+      //rapidjson::Value& typeModifierObject = this->Internal->GetCodeInArray(this->GetCodeIdentifierFromCodedEntry(typeModifier),
+      rapidjson::Value typeModifierObject(rapidjson::kNullType);
+      if ((*termDoc)["SegmentationCodes"]["Category"][foundCategoryIdx]["Type"][foundTypeIdx].HasMember("Modifier"))
+      {
+        typeModifierObject = this->Internal->GetCodeInArray(this->GetCodeIdentifierFromCodedEntry(typeModifier),
+          (*termDoc)["SegmentationCodes"]["Category"][foundCategoryIdx]["Type"][foundTypeIdx]["Modifier"], foundTypeIdx);
+      }
+      if (typeModifierObject.IsNull())
+      {
+        // Create type modifier if does not exist yet
+        typeModifierObject = rapidjson::Value(rapidjson::kObjectType);
+
+        std::string codeMeaning(typeModifier->GetCodeMeaning());
+        rapidjson::Value codeMeaningString(rapidjson::kStringType);
+        codeMeaningString.SetString(typeModifier->GetCodeMeaning(), codeMeaning.length(), allocator);
+        typeModifierObject.AddMember("CodeMeaning", codeMeaningString, allocator);
+
+        std::string codeValue(typeModifier->GetCodeValue());
+        rapidjson::Value codeValueString(rapidjson::kStringType);
+        codeValueString.SetString(typeModifier->GetCodeValue(), codeValue.length(), allocator);
+        typeModifierObject.AddMember("CodeValue", codeValueString, allocator);
+
+        std::string codingSchemeDesignator(typeModifier->GetCodingSchemeDesignator());
+        rapidjson::Value codingSchemeDesignatorString(rapidjson::kStringType);
+        codingSchemeDesignatorString.SetString(typeModifier->GetCodingSchemeDesignator(), codingSchemeDesignator.length(), allocator);
+        typeModifierObject.AddMember("CodingSchemeDesignator", codingSchemeDesignatorString, allocator);
+
+        // Create Modifier object if does not exist yet
+        if (!(*termDoc)["SegmentationCodes"]["Category"][foundCategoryIdx]["Type"][foundTypeIdx].HasMember("Modifier"))
+        {
+          rapidjson::Value typeModifiersArray(rapidjson::kArrayType);
+          (*termDoc)["SegmentationCodes"]["Category"][foundCategoryIdx]["Type"][foundTypeIdx].AddMember("Modifier", typeModifiersArray, allocator);
+        }
+
+        foundTypeIdx = (*termDoc)["SegmentationCodes"]["Category"][foundCategoryIdx]["Type"][foundTypeIdx]["Modifier"].Size();
+        (*termDoc)["SegmentationCodes"]["Category"][foundCategoryIdx]["Type"][foundTypeIdx]["Modifier"].PushBack(typeModifierObject, allocator);
+      }
+    }
+
+    // Collect terminology entries containing anatomic region entries
+    if ( entry->GetAnatomicRegionObject() && entry->GetAnatomicRegionObject()->GetCodeMeaning() != nullptr
+      && entry->GetAnatomicRegionObject()->GetCodeValue() != nullptr && entry->GetAnatomicRegionObject()->GetCodingSchemeDesignator() != nullptr )
+    {
+      entriesWithAnatomicRegion.push_back(entry);
+    }
+  } // For all terminology entries found in the color node
+
+  // Add new terminology context with the color node name as context name
+  if (this->Internal->GetTerminologyRootByName(colorNode->GetName()).IsNull())
+  {
+    this->Internal->LoadedTerminologies[colorNode->GetName()] = termDoc;
+  }
+  else
+  {
+    vtkErrorMacro("LoadColorTable: Terminology context '" << colorNode->GetName() << "' already exists, not adding");
+  }
+
+  if (entriesWithAnatomicRegion.size() == 0)
+  {
+    return true; // No need to load anatomical contexts, we can return here with success
+  }
+
+  //
+  // Add anatomic region JSON as well if color node contains such entries
+  //
+  rapidjson::Document* anatDoc = new rapidjson::Document; // Create new anatomic context document
+  allocator = anatDoc->GetAllocator();
+  anatDoc->SetObject(); // Create a root object
+
+  // Add members to the root object
+  std::string anatomicContextName(colorNode->GetName()); //TODO: No terminology (or anatomical) context in the entry
+  nodeNameString.SetString(anatomicContextName.c_str(), anatomicContextName.length(), allocator);
+  anatDoc->AddMember("AnatomicContextName", nodeNameString, allocator);
+  anatDoc->AddMember("@schema", "https://raw.githubusercontent.com/qiicr/dcmqi/master/doc/anatomic-context-schema.json#", allocator);
+
+  rapidjson::Value anatomicCodesObject(rapidjson::kObjectType);
+  anatDoc->AddMember("AnatomicCodes", anatomicCodesObject, allocator);
+
+  rapidjson::Value regionsArray(rapidjson::kArrayType);
+  (*anatDoc)["AnatomicCodes"].AddMember("AnatomicRegion", regionsArray, allocator);
+
+  for (auto entry : entriesWithAnatomicRegion)
+  {
+    // Anatomic region
+    vtkSlicerTerminologyType* anatomicRegion = entry->GetAnatomicRegionObject();
+    if (anatomicRegion->GetCodeMeaning() == nullptr || anatomicRegion->GetCodeValue() == nullptr || anatomicRegion->GetCodingSchemeDesignator() == nullptr)
+    {
+      vtkErrorMacro("LoadColorTable: Invalid anatomic region found in terminology entry.");
+      continue;
+    }
+    int foundRegionIdx{-1};
+    rapidjson::Value& regionObject = this->Internal->GetCodeInArray(this->GetCodeIdentifierFromCodedEntry(anatomicRegion),
+      (*anatDoc)["AnatomicCodes"]["AnatomicRegion"], foundRegionIdx);
+    if (regionObject.IsNull())
+    {
+      // Create type if does not exist yet
+      regionObject = rapidjson::Value(rapidjson::kObjectType);
+
+      std::string codeMeaning(anatomicRegion->GetCodeMeaning());
+      rapidjson::Value codeMeaningString(rapidjson::kStringType);
+      codeMeaningString.SetString(anatomicRegion->GetCodeMeaning(), codeMeaning.length(), allocator);
+      regionObject.AddMember("CodeMeaning", codeMeaningString, allocator);
+
+      std::string codeValue(anatomicRegion->GetCodeValue());
+      rapidjson::Value codeValueString(rapidjson::kStringType);
+      codeValueString.SetString(anatomicRegion->GetCodeValue(), codeValue.length(), allocator);
+      regionObject.AddMember("CodeValue", codeValueString, allocator);
+
+      std::string codingSchemeDesignator(anatomicRegion->GetCodingSchemeDesignator());
+      rapidjson::Value codingSchemeDesignatorString(rapidjson::kStringType);
+      codingSchemeDesignatorString.SetString(anatomicRegion->GetCodingSchemeDesignator(), codingSchemeDesignator.length(), allocator);
+      regionObject.AddMember("CodingSchemeDesignator", codingSchemeDesignatorString, allocator);
+
+      foundRegionIdx = (*anatDoc)["AnatomicCodes"]["AnatomicRegion"].Size();
+      (*anatDoc)["AnatomicCodes"]["AnatomicRegion"].PushBack(regionObject, allocator);
+    }
+
+    // Anatomic region modifier
+    vtkSlicerTerminologyType* regionModifier = entry->GetAnatomicRegionModifierObject();
+    if (regionModifier != nullptr)
+    {
+      if (regionModifier->GetCodeMeaning() == nullptr || regionModifier->GetCodeValue() == nullptr || regionModifier->GetCodingSchemeDesignator() == nullptr)
+      {
+        vtkErrorMacro("LoadColorTable: Invalid anatomic region modifier found in terminology entry.");
+        continue;
+      }
+      int foundRegionModifierIdx{-1};
+      rapidjson::Value regionModifierObject(rapidjson::kNullType);
+      if ((*anatDoc)["AnatomicCodes"]["AnatomicRegion"][foundRegionIdx].HasMember("Modifier"))
+      {
+        regionModifierObject = this->Internal->GetCodeInArray(this->GetCodeIdentifierFromCodedEntry(regionModifier),
+          (*anatDoc)["AnatomicCodes"]["AnatomicRegion"][foundRegionIdx]["Modifier"], foundRegionIdx);
+      }
+      if (regionModifierObject.IsNull())
+      {
+        // Create type modifier if does not exist yet
+        regionModifierObject = rapidjson::Value(rapidjson::kObjectType);
+
+        std::string codeMeaning(regionModifier->GetCodeMeaning());
+        rapidjson::Value codeMeaningString(rapidjson::kStringType);
+        codeMeaningString.SetString(regionModifier->GetCodeMeaning(), codeMeaning.length(), allocator);
+        regionModifierObject.AddMember("CodeMeaning", codeMeaningString, allocator);
+
+        std::string codeValue(regionModifier->GetCodeValue());
+        rapidjson::Value codeValueString(rapidjson::kStringType);
+        codeValueString.SetString(regionModifier->GetCodeValue(), codeValue.length(), allocator);
+        regionModifierObject.AddMember("CodeValue", codeValueString, allocator);
+
+        std::string codingSchemeDesignator(regionModifier->GetCodingSchemeDesignator());
+        rapidjson::Value codingSchemeDesignatorString(rapidjson::kStringType);
+        codingSchemeDesignatorString.SetString(regionModifier->GetCodingSchemeDesignator(), codingSchemeDesignator.length(), allocator);
+        regionModifierObject.AddMember("CodingSchemeDesignator", codingSchemeDesignatorString, allocator);
+
+        // Create Modifier object if does not exist yet
+        if (!(*anatDoc)["AnatomicCodes"]["AnatomicRegion"][foundRegionIdx].HasMember("Modifier"))
+        {
+          rapidjson::Value typeModifiersArray(rapidjson::kArrayType);
+          (*anatDoc)["AnatomicCodes"]["AnatomicRegion"][foundRegionIdx].AddMember("Modifier", typeModifiersArray, allocator);
+        }
+
+        foundRegionIdx = (*anatDoc)["AnatomicCodes"]["AnatomicRegion"][foundRegionIdx]["Modifier"].Size();
+        (*anatDoc)["AnatomicCodes"]["AnatomicRegion"][foundRegionIdx]["Modifier"].PushBack(regionModifierObject, allocator);
+      }
+    }
+  } // For all terminology entries containing anatomic region entries
+
+  // Add new anatomic context with the color node name as context name
+  if (this->Internal->GetAnatomicContextRootByName(colorNode->GetName()).IsNull())
+  {
+    this->Internal->LoadedAnatomicContexts[colorNode->GetName()] = termDoc;
+  }
+  else
+  {
+    vtkErrorMacro("LoadColorTable: Anatomic context '" << colorNode->GetName() << "' already exists, not adding");
   }
 
   return true;

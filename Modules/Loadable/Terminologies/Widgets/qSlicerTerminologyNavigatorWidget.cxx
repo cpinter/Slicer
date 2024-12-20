@@ -1124,6 +1124,7 @@ void qSlicerTerminologyNavigatorWidget::populateTerminologyComboBox()
   d->TerminologyComboboxPopulating = true;
   std::vector<std::string> terminologyNames;
   logic->GetLoadedTerminologyNames(terminologyNames);
+  logic->LoadCompatibleColorTables(terminologyNames);
   for (std::vector<std::string>::iterator termIt=terminologyNames.begin(); termIt!=terminologyNames.end(); ++termIt)
   {
     d->ComboBox_Terminology->addItem(termIt->c_str());
