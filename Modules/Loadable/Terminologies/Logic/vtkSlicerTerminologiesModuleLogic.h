@@ -91,9 +91,9 @@ public:
   /// Load anatomic context dictionary from segmentation descriptor JSON file into \sa LoadedAnatomicContexts.
   /// See also \sa LoadTerminologyFromSegmentDescriptorFile
   bool LoadAnatomicContextFromSegmentDescriptorFile(std::string contextName, std::string filePath);
+
   /// Load all color tables containing terminology as terminology contexts (and anatomic context if any).
-  /// \param terminologyNames Vector of terminology context names, to which the found color table terminologies are appended.
-  void LoadCompatibleColorTables(std::vector<std::string> &terminologyNames);
+  void LoadCompatibleColorTables();
   /// Load given color node as terminology context (and anatomic context if any).
   bool LoadColorTable(vtkMRMLColorNode* colorNode);
 
