@@ -39,7 +39,7 @@
 #include "qMRMLItemDelegate.h"
 
 // MRML includes
-#include "vtkMRMLColorNode.h"
+#include "vtkMRMLColorTableNode.h"
 
 // VTK includes
 #include <vtkSmartPointer.h>
@@ -152,6 +152,14 @@ void qSlicerColorTableTerminologyDelegate::setModelData(QWidget* editor, QAbstra
   qSlicerTerminologyNavigatorWidget::TerminologyInfoBundle terminologyInfo;
   qSlicerTerminologyEditorButton* terminologyButton = qobject_cast<qSlicerTerminologyEditorButton*>(editor);
   terminologyButton->terminologyInfo(terminologyInfo);
+
+  // Set color
+  vtkMRMLColorTableNode* colorTableNode = vtkMRMLColorTableNode::SafeDownCast(colorNode);
+  if (colorTableNode != nullptr)
+  {
+    colorTableNode->SetColor(colorIndex,
+      terminologyInfo.Color.redF(), terminologyInfo.Color.greenF(), terminologyInfo.Color.blueF(), 1.0);
+  }
 
   // Set empty terminology context name if not imported from loaded terminology context
   vtkSlicerTerminologyEntry* entry = terminologyInfo.GetTerminologyEntry();
