@@ -820,12 +820,12 @@ bool qSlicerTerminologyNavigatorWidget::setTerminologyEntry(vtkSlicerTerminology
   if (terminologyContextName.isEmpty())
   {
     QSettings* settings = qSlicerApplication::application()->settingsDialog()->settings();
-    if (settings->contains("Terminology/LastTerminologyContext"))
+    if (settings->contains("Terminology/LastTerminologyContexts"))
     {
-      QString lastTerminologyContextName = settings->value("Terminology/LastTerminologyContext").toString();
-      if (!lastTerminologyContextName.isEmpty())
+      QStringList lastTerminologyContextNames = settings->value("Terminology/LastTerminologyContexts").toStringList();
+      if (lastTerminologyContextNames.size() > 0)
       {
-        terminologyContextName = lastTerminologyContextName;
+        terminologyContextName = lastTerminologyContextNames[0];
       }
       else
       {
@@ -1465,13 +1465,6 @@ void qSlicerTerminologyNavigatorWidget::onTerminologySelectionChanged(int index)
   // Set current terminology
   QString terminologyName = d->ComboBox_Terminology->itemText(index);
   this->setCurrentTerminology(terminologyName);
-
-  // Save last selection to application settings
-  if (!d->TerminologyComboboxPopulating)
-  {
-    QSettings* settings = qSlicerApplication::application()->settingsDialog()->settings();
-    settings->setValue("Terminology/LastTerminologyContext", terminologyName);
-  }
 }
 
 //-----------------------------------------------------------------------------
