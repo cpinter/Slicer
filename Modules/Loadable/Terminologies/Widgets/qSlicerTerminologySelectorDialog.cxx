@@ -25,15 +25,11 @@
 
 #include "vtkSlicerTerminologyEntry.h"
 
-// Slicer includes
-#include <qSlicerApplication.h>
-
 // Qt includes
 #include <QDebug>
 #include <QDialog>
 #include <QHBoxLayout>
 #include <QPushButton>
-#include <QSettings>
 #include <QVBoxLayout>
 
 //-----------------------------------------------------------------------------
@@ -143,23 +139,6 @@ bool qSlicerTerminologySelectorDialog::exec()
   {
     return result;
   }
-
-  // Save last used terminology context in application settings
-  QString terminologyContextName;
-  if (d->TerminologyInfo.GetTerminologyEntry() != nullptr && d->TerminologyInfo.GetTerminologyEntry()->GetTerminologyContextName() != nullptr)
-  {
-    terminologyContextName = QString(d->TerminologyInfo.GetTerminologyEntry()->GetTerminologyContextName());
-  }
-  QSettings* settings = qSlicerApplication::application()->settingsDialog()->settings();
-  QStringList lastTerminologyContextNames = settings->value("Terminology/LastTerminologyContexts").toStringList();
-  if (!lastTerminologyContextNames.isEmpty())
-  {
-    // Remove the terminology name from the list so that there are no duplicate entries in the list
-    lastTerminologyContextNames.removeOne(terminologyContextName);
-  }
-  // Prepend terminology name to the list so that the last used terminology is first
-  lastTerminologyContextNames.insert(0, terminologyContextName);
-  settings->setValue("Terminology/LastTerminologyContexts", lastTerminologyContextNames);
 
   // Save selection after clean exit
   d->NavigatorWidget->terminologyInfo(d->TerminologyInfo);
