@@ -1083,7 +1083,7 @@ bool qSlicerSegmentationsModuleWidget::importToCurrentSegmentation()
   }
   else if (modelNode)
   {
-    if (!vtkSlicerSegmentationsModuleLogic::ImportModelToSegmentationNode(modelNode, currentSegmentationNode))
+    if (vtkSlicerSegmentationsModuleLogic::ImportModelToSegmentationNode(modelNode, currentSegmentationNode).empty())
     {
       QString message = tr("Failed to copy polydata from model node %1!").arg(modelNode->GetName());
       qCritical() << Q_FUNC_INFO << ": " << message;

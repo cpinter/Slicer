@@ -482,12 +482,12 @@ std::string vtkSegmentation::GenerateRandomSegmentID(int suffixLength, std::stri
 }
 
 //---------------------------------------------------------------------------
-bool vtkSegmentation::AddSegment(vtkSegment* segment, std::string segmentId/*=""*/, std::string insertBeforeSegmentId/*=""*/)
+std::string vtkSegmentation::AddSegment(vtkSegment* segment, std::string segmentId/*=""*/, std::string insertBeforeSegmentId/*=""*/)
 {
   if (!segment)
   {
     vtkErrorMacro("AddSegment: Invalid segment!");
-    return false;
+    return std::string();
   }
 
   // Observe segment underlying data for changes
@@ -634,7 +634,7 @@ bool vtkSegmentation::AddSegment(vtkSegment* segment, std::string segmentId/*=""
     {
       this->Segments.erase(segmentIt);
     }
-    return false;
+    return std::string();
   }
 
   // Add observation of source representation in new segment
@@ -647,7 +647,7 @@ bool vtkSegmentation::AddSegment(vtkSegment* segment, std::string segmentId/*=""
     if (segment->GetName() == nullptr)
     {
       vtkErrorMacro("AddSegment: Unable to add segment without a key; neither key is given nor segment name is defined!");
-      return false;
+      return std::string();
     }
     key = this->GenerateUniqueSegmentID();
   }
@@ -668,7 +668,7 @@ bool vtkSegmentation::AddSegment(vtkSegment* segment, std::string segmentId/*=""
   const char* segmentIdChars = key.c_str();
   this->InvokeEvent(vtkSegmentation::SegmentAdded, (void*)segmentIdChars);
 
-  return true;
+  return segmentIdChars;
 }
 
 //---------------------------------------------------------------------------
@@ -2014,7 +2014,7 @@ std::string vtkSegmentation::AddEmptySegment(std::string segmentId/*=""*/, std::
 
   // Add segment
   segmentId = this->GenerateUniqueSegmentID(segmentId);
-  if (!this->AddSegment(segment, segmentId))
+  if (this->AddSegment(segment, segmentId).empty())
   {
     return "";
   }
@@ -2068,7 +2068,7 @@ bool vtkSegmentation::CopySegmentFromSegmentation(vtkSegmentation* fromSegmentat
   {
     vtkSmartPointer<vtkSegment> segmentCopy = vtkSmartPointer<vtkSegment>::New();
     segmentCopy->DeepCopy(segment);
-    if (!this->AddSegment(segmentCopy, targetSegmentId))
+    if (this->AddSegment(segmentCopy, targetSegmentId).empty())
     {
       vtkErrorMacro("CopySegmentFromSegmentation: Failed to add segment '" << targetSegmentId << "' to segmentation");
       return false;
@@ -2077,7 +2077,7 @@ bool vtkSegmentation::CopySegmentFromSegmentation(vtkSegmentation* fromSegmentat
   // If move, then just add segment to target and remove from source (ownership is transferred)
   else
   {
-    if (!this->AddSegment(segment, targetSegmentId))
+    if (this->AddSegment(segment, targetSegmentId).empty())
     {
       vtkErrorMacro("CopySegmentFromSegmentation: Failed to add segment '" << targetSegmentId << "' to segmentation");
       return false;
