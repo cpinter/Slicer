@@ -271,7 +271,7 @@ bool qSlicerSubjectHierarchySegmentationsPlugin::reparentItemInsideSubjectHierar
   else
   {
     importedRepresentationName = std::string(vtkSegmentationConverter::GetClosedSurfaceRepresentationName());
-    success = vtkSlicerSegmentationsModuleLogic::ImportModelToSegmentationNode(modelNode, segmentationNode);
+    success = vtkSlicerSegmentationsModuleLogic::ImportModelToSegmentationNode(modelNode, segmentationNode).empty() ? false : true;
   }
 
   // Notify user if failed to import
@@ -1168,7 +1168,7 @@ void qSlicerSubjectHierarchySegmentationsPlugin::convertModelToSegmentation()
   std::string newSegmentationNodeName = std::string(modelNode->GetName()) + "-segmentation";
   newSegmentationNode->SetName(newSegmentationNodeName.c_str());
 
-  if (!vtkSlicerSegmentationsModuleLogic::ImportModelToSegmentationNode(modelNode, newSegmentationNode))
+  if (vtkSlicerSegmentationsModuleLogic::ImportModelToSegmentationNode(modelNode, newSegmentationNode).empty())
   {
     qCritical() << Q_FUNC_INFO << ": Failed to import model '" << modelNode->GetName() << "' to segmentation '" << newSegmentationNode->GetName() << "'";
   }

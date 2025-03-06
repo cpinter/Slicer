@@ -269,7 +269,9 @@ public:
     vtkMRMLMessageCollection* userMessages = nullptr);
 
   /// Import model into the segmentation as a segment.
-  static bool ImportModelToSegmentationNode(vtkMRMLModelNode* modelNode, vtkMRMLSegmentationNode* segmentationNode, std::string insertBeforeSegmentId = "");
+  /// \return Segment ID of the imported segment. Empty string if import failed.
+  static std::string ImportModelToSegmentationNode(
+    vtkMRMLModelNode* modelNode, vtkMRMLSegmentationNode* segmentationNode, std::string insertBeforeSegmentId = "");
 
   /// Import models in a folder into the segmentation as segments.
   static bool ImportModelsToSegmentationNode(

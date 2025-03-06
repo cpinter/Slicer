@@ -1047,7 +1047,7 @@ void qSlicerSubjectHierarchySegmentsPlugin::cloneSegment()
   }
 
   std::string targetSegmentId = segmentation->GenerateUniqueSegmentID(segmentId);
-  if (!segmentation->AddSegment(segmentCopy, targetSegmentId, insertBeforeSegmentId))
+  if (segmentation->AddSegment(segmentCopy, targetSegmentId, insertBeforeSegmentId).empty())
   {
     qCritical() << Q_FUNC_INFO << " failed: error adding cloned segment '" << segmentId.c_str() << "' to segmentation";
     return;

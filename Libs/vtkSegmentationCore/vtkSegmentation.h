@@ -206,8 +206,8 @@ public:
   ///   in a segmentation to contain the same types of representations).
   /// \param segment the segment to observe
   /// \param insertBeforeSegmentId if specified then the segment is inserted before insertBeforeSegmentId
-  /// \return Success flag
-  bool AddSegment(vtkSegment* segment, std::string segmentId = "", std::string insertBeforeSegmentId = "");
+  /// \return Segment ID of the added segment (empty string if segment could not be added)
+  std::string AddSegment(vtkSegment* segment, std::string segmentId = "", std::string insertBeforeSegmentId = "");
 
   /// Generate unique segment ID. If argument is empty then a new unique ID will be generated.
   /// The unique generated ID is generated as a UUID derived UID

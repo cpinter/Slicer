@@ -820,7 +820,7 @@ std::string vtkMRMLSegmentationNode::AddSegmentFromClosedSurfaceRepresentation(v
     newSegment->SetColor(color);
   }
   newSegment->AddRepresentation(vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName(), polyData);
-  if (!this->Segmentation->AddSegment(newSegment.GetPointer(), segmentId))
+  if (this->Segmentation->AddSegment(newSegment.GetPointer(), segmentId).empty())
   {
     return "";
   }
@@ -847,7 +847,7 @@ std::string vtkMRMLSegmentationNode::AddSegmentFromBinaryLabelmapRepresentation(
     newSegment->SetColor(color);
   }
   newSegment->AddRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName(), imageData);
-  if (!this->Segmentation->AddSegment(newSegment.GetPointer(), segmentId))
+  if (this->Segmentation->AddSegment(newSegment.GetPointer(), segmentId).empty())
   {
     return "";
   }

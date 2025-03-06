@@ -1329,24 +1329,24 @@ bool vtkSlicerSegmentationsModuleLogic::ExportAllSegmentsToLabelmapNode(vtkMRMLS
 }
 
 //-----------------------------------------------------------------------------
-bool vtkSlicerSegmentationsModuleLogic::ImportModelToSegmentationNode(vtkMRMLModelNode* modelNode,
+std::string vtkSlicerSegmentationsModuleLogic::ImportModelToSegmentationNode(vtkMRMLModelNode* modelNode,
   vtkMRMLSegmentationNode* segmentationNode, std::string insertBeforeSegmentId/*=""*/)
 {
   if (!segmentationNode)
   {
     vtkGenericWarningMacro("vtkSlicerSegmentationsModuleLogic::ImportModelToSegmentationNode: Invalid segmentation node");
-    return false;
+    return std::string();
   }
   if (!modelNode || !modelNode->GetMesh())
   {
     vtkErrorWithObjectMacro(segmentationNode, "ImportModelToSegmentationNode: Invalid model node");
-    return false;
+    return std::string();
   }
   vtkSmartPointer<vtkSegment> segment = vtkSmartPointer<vtkSegment>::Take(
     vtkSlicerSegmentationsModuleLogic::CreateSegmentFromModelNode(modelNode, segmentationNode));
   if (!segment.GetPointer())
   {
-    return false;
+    return std::string();
   }
 
   if (!segmentationNode->GetDisplayNode())
@@ -1355,13 +1355,12 @@ bool vtkSlicerSegmentationsModuleLogic::ImportModelToSegmentationNode(vtkMRMLMod
   }
 
   // Add segment to current segmentation
-  if (!segmentationNode->GetSegmentation()->AddSegment(segment, "", insertBeforeSegmentId))
+  std::string addedSegmentID = segmentationNode->GetSegmentation()->AddSegment(segment, "", insertBeforeSegmentId);
+  if (addedSegmentID.empty())
   {
     vtkErrorWithObjectMacro(segmentationNode, "vtkSlicerSegmentationsModuleLogic: Failed to add segment to segmentation");
-    return false;
   }
-
-  return true;
+  return addedSegmentID;
 }
 
 //-----------------------------------------------------------------------------
@@ -1393,7 +1392,7 @@ bool vtkSlicerSegmentationsModuleLogic::ImportModelsToSegmentationNode(vtkIdType
       continue;
     }
     // TODO: look up segment with matching name and overwrite that
-    if (!vtkSlicerSegmentationsModuleLogic::ImportModelToSegmentationNode(modelNode, segmentationNode))
+    if (vtkSlicerSegmentationsModuleLogic::ImportModelToSegmentationNode(modelNode, segmentationNode).empty())
     {
       vtkErrorWithObjectMacro(segmentationNode, "ImportModelsToSegmentationNode: Failed to import model node "
         << modelNode->GetName() << " to segmentation " << segmentationNode->GetName());
@@ -1545,7 +1544,7 @@ bool vtkSlicerSegmentationsModuleLogic::ImportLabelmapToSegmentationNode(vtkMRML
       vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName(),
       labelOrientedImageData );
 
-    if (!segmentationNode->GetSegmentation()->AddSegment(segment, "", insertBeforeSegmentId))
+    if (segmentationNode->GetSegmentation()->AddSegment(segment, "", insertBeforeSegmentId).empty())
     {
       vtkErrorToMessageCollectionWithObjectMacro(segmentationNode, userMessages,
         "vtkSlicerSegmentationsModuleLogic::ImportLabelmapToSegmentationNode",
@@ -1657,7 +1656,7 @@ bool vtkSlicerSegmentationsModuleLogic::ImportLabelmapToSegmentationNode(vtkOrie
       vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName(),
       labelOrientedImageData );
 
-    if (!segmentationNode->GetSegmentation()->AddSegment(segment, "", insertBeforeSegmentId))
+    if (segmentationNode->GetSegmentation()->AddSegment(segment, "", insertBeforeSegmentId).empty())
     {
       vtkErrorToMessageCollectionWithObjectMacro(segmentationNode, userMessages,
         "vtkSlicerSegmentationsModuleLogic::ImportLabelmapToSegmentationNode",
@@ -1813,7 +1812,7 @@ bool vtkSlicerSegmentationsModuleLogic::ImportLabelmapToSegmentationNode(
       vtkNew<vtkSegment> newSegment;
       newSegment->SetName(segmentId.c_str());
       segment = newSegment;
-      if (!segmentationNode->GetSegmentation()->AddSegment(newSegment, segmentId))
+      if (segmentationNode->GetSegmentation()->AddSegment(newSegment, segmentId).empty())
       {
         vtkErrorToMessageCollectionWithObjectMacro(segmentationNode, userMessages,
           "vtkSlicerSegmentationsModuleLogic::ImportLabelmapToSegmentationNode",
